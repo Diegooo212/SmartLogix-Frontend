@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import { renderWithProviders } from '../../test/utils/renderWithProviders'
 import Carrito from './index'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+afterEach(() => cleanup())
 
 describe('HU-07 · Carrito de compras', () => {
 

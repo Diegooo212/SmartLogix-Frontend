@@ -4,6 +4,10 @@ import { http, HttpResponse } from 'msw'
 import { server } from '../../../test/mocks/server'
 import { renderWithProviders } from '../../../test/utils/renderWithProviders'
 import Login from './index'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+afterEach(() => cleanup())
 
 const llenarFormulario = (overrides = {}) => {
   const datos = {
@@ -76,10 +80,11 @@ describe('HU-05 · Inicio de sesión', () => {
   })
 
   it('CA8: el botón se deshabilita mientras se está autenticando', async () => {
-    renderWithProviders(<Login />)
-    llenarFormulario()
-    fireEvent.click(screen.getByTestId('btn-login'))
-    expect(screen.getByTestId('btn-login')).toBeDisabled()
+  const { getByTestId } = renderWithProviders(<Login />)
+  fireEvent.change(getByTestId('input-correo'), { target: { value: 'diego@test.cl' } })
+  fireEvent.change(getByTestId('input-password'), { target: { value: 'password123' } })
+  fireEvent.click(getByTestId('btn-login'))
+  expect(getByTestId('btn-login')).toBeDisabled()
   })
 
 })

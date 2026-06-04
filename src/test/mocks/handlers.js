@@ -42,4 +42,8 @@ export const handlers = [
   http.put('/api/perfil', () => {
     return HttpResponse.json({ success: true })
   }),
+  
+  http.post('/api/checkout', () => {
+  return HttpResponse.json({ numeroPedido: '12345' })
+  }),
 ]

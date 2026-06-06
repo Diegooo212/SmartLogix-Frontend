@@ -70,4 +70,23 @@ export const handlers = [
   http.put('/api/pedidos/:id', () => {
     return HttpResponse.json({ success: true })
   }),
+  
+  http.get('/api/admin/dashboard', () => {
+  return HttpResponse.json({
+    ventasTotales: 15234990,
+    totalPedidos: 142,
+    usuariosNuevos: 38,
+    ticketPromedio: 107288,
+    productosMasVendidos: [
+      { id: 1, nombre: 'Laptop Gamer', ventas: 45 },
+      { id: 2, nombre: 'Mouse Inalámbrico', ventas: 38 },
+      { id: 3, nombre: 'Monitor 27"', ventas: 27 },
+    ],
+    pedidosRecientes: [
+      { id: 101, cliente: 'Diego Tatin', estado: 'Pendiente' },
+      { id: 102, cliente: 'María López', estado: 'En Preparación' },
+      { id: 103, cliente: 'Carlos Pérez', estado: 'Entregado' },
+    ],
+  })
+  }),
 ]

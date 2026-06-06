@@ -46,6 +46,7 @@ export const handlers = [
   http.post('/api/checkout', () => {
   return HttpResponse.json({ numeroPedido: '12345' })
   }),
+  
   http.post('/api/productos', () => {
   return HttpResponse.json({ id: 6, nombre: 'Nuevo Producto', precio: 99990, categoria: 'Test', marca: 'Test', stock: 10 })
   }),
@@ -55,6 +56,18 @@ export const handlers = [
   }),
 
   http.delete('/api/productos/:id', () => {
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.get('/api/pedidos', () => {
+  return HttpResponse.json([
+    { id: 1, cliente: 'Diego Tatin', total: 924980, estado: 'Pendiente' },
+    { id: 2, cliente: 'María López', total: 349990, estado: 'En Preparación' },
+    { id: 3, cliente: 'Carlos Pérez', total: 89990, estado: 'Entregado' },
+  ])
+  }),
+
+  http.put('/api/pedidos/:id', () => {
     return HttpResponse.json({ success: true })
   }),
 ]

@@ -46,4 +46,15 @@ export const handlers = [
   http.post('/api/checkout', () => {
   return HttpResponse.json({ numeroPedido: '12345' })
   }),
+  http.post('/api/productos', () => {
+  return HttpResponse.json({ id: 6, nombre: 'Nuevo Producto', precio: 99990, categoria: 'Test', marca: 'Test', stock: 10 })
+  }),
+
+  http.put('/api/productos/:id', () => {
+    return HttpResponse.json({ id: 1, nombre: 'Laptop Gamer Editado', precio: 899990, categoria: 'Computación', marca: 'ASUS', stock: 10 })
+  }),
+
+  http.delete('/api/productos/:id', () => {
+    return HttpResponse.json({ success: true })
+  }),
 ]

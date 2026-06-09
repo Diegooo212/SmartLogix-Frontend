@@ -87,6 +87,10 @@ export const handlers = [
       { id: 102, cliente: 'María López', estado: 'En Preparación' },
       { id: 103, cliente: 'Carlos Pérez', estado: 'Entregado' },
     ],
-  })
-  }),
+    })
+   }),
+
+  http.put('/api/productos/:id/stock', () => {
+  return HttpResponse.json({ success: true })
+   }),
 ]

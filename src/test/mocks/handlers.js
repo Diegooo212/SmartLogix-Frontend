@@ -3,12 +3,14 @@ import { http, HttpResponse } from 'msw'
 export const handlers = [
   // HU-01, 02, 03 — Productos
   http.get('/api/productos', () => {
-    return HttpResponse.json([
-      { id: 1, nombre: 'Laptop Gamer', precio: 899990, categoria: 'Computación', marca: 'ASUS', stock: 10 },
-      { id: 2, nombre: 'Mouse Inalámbrico', precio: 24990, categoria: 'Periféricos', marca: 'Logitech', stock: 25 },
-      { id: 3, nombre: 'Monitor 27"', precio: 349990, categoria: 'Monitores', marca: 'Samsung', stock: 5 },
-      { id: 4, nombre: 'Teclado Mecánico', precio: 79990, categoria: 'Periféricos', marca: 'Redragon', stock: 15 },
-      { id: 5, nombre: 'SSD 1TB', precio: 89990, categoria: 'Almacenamiento', marca: 'Kingston', stock: 30 },
+  return HttpResponse.json([
+    { id: 1, nombre: 'Laptop Gamer', precio: 899990, categoria: 'Computación', marca: 'ASUS', stock: 10, destacado: true },
+    { id: 2, nombre: 'Mouse Inalámbrico', precio: 24990, categoria: 'Periféricos', marca: 'Logitech', stock: 25, destacado: true },
+    { id: 3, nombre: 'Monitor 27"', precio: 349990, categoria: 'Monitores', marca: 'Samsung', stock: 5, destacado: true },
+    { id: 4, nombre: 'Teclado Mecánico', precio: 79990, categoria: 'Periféricos', marca: 'Redragon', stock: 15, destacado: false },
+    { id: 5, nombre: 'SSD 1TB', precio: 89990, categoria: 'Almacenamiento', marca: 'Kingston', stock: 30, destacado: false },
+    { id: 6, nombre: 'Audífonos Gamer', precio: 59990, categoria: 'Audio', marca: 'HyperX', stock: 20, destacado: true },
+    { id: 7, nombre: 'Webcam HD', precio: 44990, categoria: 'Periféricos', marca: 'Logitech', stock: 8, destacado: true },
     ])
   }),
 

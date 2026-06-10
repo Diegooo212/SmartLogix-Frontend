@@ -14,12 +14,29 @@ describe('HU-01 · Ver página principal', () => {
     expect(screen.getByText('Ver ofertas')).toBeInTheDocument()
   })
 
-  it('CA2: muestra al menos 5 productos en la sección Más vendidos', async () => {
+  it('CA2: el carrusel muestra solo productos con estado destacado', async () => {
     renderWithProviders(<Home />)
     await waitFor(() => {
       const cards = screen.getAllByTestId('producto-card')
-      expect(cards.length).toBeGreaterThanOrEqual(5)
+      expect(cards.length).toBeGreaterThanOrEqual(1)
+      expect(cards.length).toBeLessThanOrEqual(10)
     })
+  })
+
+  it('CA2b: el carrusel no muestra productos sin estado destacado', async () => {
+    renderWithProviders(<Home />)
+    await waitFor(() => {
+      const cards = screen.getAllByTestId('producto-card')
+      // Solo hay 5 destacados en el mock, los no destacados no deben aparecer
+      expect(cards.length).toBe(5)
+    })
+  })
+
+  it('CA2c: el carrusel tiene botones de navegación anterior y siguiente', async () => {
+    renderWithProviders(<Home />)
+    await waitFor(() => screen.getByTestId('carrusel-destacados'))
+    expect(screen.getByTestId('btn-anterior')).toBeInTheDocument()
+    expect(screen.getByTestId('btn-siguiente')).toBeInTheDocument()
   })
 
   it('CA3: cada producto muestra nombre, precio, categoría y botón de carrito', async () => {
@@ -34,8 +51,7 @@ describe('HU-01 · Ver página principal', () => {
 
   it('CA4: el botón "Ver ofertas" redirige a /catalogo', () => {
     renderWithProviders(<Home />)
-    const btn = screen.getByText('Ver ofertas')
-    fireEvent.click(btn)
+    fireEvent.click(screen.getByText('Ver ofertas'))
     expect(window.location.pathname).toBe('/catalogo')
   })
 
@@ -58,20 +74,16 @@ describe('HU-01 · Ver página principal', () => {
   it('CA7 (Loading): muestra Skeleton Loaders mientras se obtiene la información', () => {
     renderWithProviders(<Home />)
     expect(screen.getByTestId('skeleton-loader')).toBeInTheDocument()
-    const skeletons = screen.getAllByTestId('skeleton-item')
-    expect(skeletons.length).toBe(5)
+    expect(screen.getAllByTestId('skeleton-item').length).toBe(5)
   })
 
   it('CA8 (Error): muestra mensaje de error y botón reintentar si la API falla', async () => {
-    // Sobreescribir handler para simular error 500
     server.use(
       http.get('/api/productos', () => {
         return new HttpResponse(null, { status: 500 })
       })
     )
-
     renderWithProviders(<Home />)
-
     await waitFor(() => {
       expect(screen.getByTestId('error-productos')).toBeInTheDocument()
       expect(screen.getByText('Error al cargar las ofertas')).toBeInTheDocument()

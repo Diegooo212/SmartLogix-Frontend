@@ -98,5 +98,13 @@ export const handlers = [
    
    http.post('/api/auth/recuperar-password', () => {
   return HttpResponse.json({ success: true })
-   }),
+  }),
+
+   http.put('/api/productos/:id/destacado', () => {
+  return HttpResponse.json({ success: true })
+  }),
+
+http.put('/api/productos/:id/oferta', () => {
+  return HttpResponse.json({ success: true })
+  }),
 ]

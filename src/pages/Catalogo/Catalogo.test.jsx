@@ -64,7 +64,7 @@ describe('HU-02 · Ver catálogo de productos', () => {
 
     await waitFor(() => {
       const cards = screen.getAllByTestId('producto-card')
-      expect(cards.length).toBe(2)
+      expect(cards.length).toBe(3)
     })
   })
 

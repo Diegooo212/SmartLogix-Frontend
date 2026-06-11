@@ -10,7 +10,7 @@ describe('HU-01 · Ver página principal', () => {
   it('CA1: muestra el hero con título y botones de navegación', () => {
     renderWithProviders(<Home />)
     expect(screen.getByTestId('hero')).toBeInTheDocument()
-    expect(screen.getByText('Bienvenido a SmartLogix')).toBeInTheDocument()
+    expect(screen.getByTestId('hero')).toHaveTextContent('Bienvenido a SmartLogix')
     expect(screen.getByText('Ver ofertas')).toBeInTheDocument()
   })
 

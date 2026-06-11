@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import styles from './Catalogo.module.css'
 
 function Catalogo() {
   const [productos, setProductos] = useState([])
@@ -31,28 +32,20 @@ function Catalogo() {
 
   useEffect(() => {
     let resultado = [...productos]
-
     if (busqueda.trim() !== '') {
       resultado = resultado.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         p.marca.toLowerCase().includes(busqueda.toLowerCase())
       )
     }
-
     if (categoriaSeleccionada !== 'Todas') {
       resultado = resultado.filter(p => p.categoria === categoriaSeleccionada)
     }
-
     if (marcaSeleccionada !== 'Todas') {
       resultado = resultado.filter(p => p.marca === marcaSeleccionada)
     }
-
-    if (ordenPrecio === 'asc') {
-      resultado.sort((a, b) => a.precio - b.precio)
-    } else if (ordenPrecio === 'desc') {
-      resultado.sort((a, b) => b.precio - a.precio)
-    }
-
+    if (ordenPrecio === 'asc') resultado.sort((a, b) => a.precio - b.precio)
+    else if (ordenPrecio === 'desc') resultado.sort((a, b) => b.precio - a.precio)
     setProductosFiltrados(resultado)
   }, [busqueda, categoriaSeleccionada, marcaSeleccionada, ordenPrecio, productos])
 
@@ -67,103 +60,92 @@ function Catalogo() {
   }
 
   return (
-    <main>
-      <h1>Catálogo de productos</h1>
+    <main className={styles.main}>
+      <h1 className={styles.titulo}>
+        Catálogo de <span className={styles.accent}>Productos</span>
+      </h1>
 
-      {/* CA1: Barra de búsqueda */}
-      <input
-        data-testid="barra-busqueda"
-        type="text"
-        placeholder="Buscar productos..."
-        value={busqueda}
-        onChange={e => setBusqueda(e.target.value)}
-      />
+      <div className={styles.filtros}>
+        <input
+          data-testid="barra-busqueda"
+          className={styles.barraBusqueda}
+          type="text"
+          placeholder="Buscar productos..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
+        <select
+          data-testid="filtro-categoria"
+          className={styles.select}
+          value={categoriaSeleccionada}
+          onChange={e => setCategoriaSeleccionada(e.target.value)}
+        >
+          {categorias.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
+        <select
+          data-testid="filtro-marca"
+          className={styles.select}
+          value={marcaSeleccionada}
+          onChange={e => setMarcaSeleccionada(e.target.value)}
+        >
+          {marcas.map(marca => <option key={marca} value={marca}>{marca}</option>)}
+        </select>
+        <select
+          data-testid="orden-precio"
+          className={styles.select}
+          value={ordenPrecio}
+          onChange={e => setOrdenPrecio(e.target.value)}
+        >
+          <option value="ninguno">Sin orden</option>
+          <option value="asc">Menor precio</option>
+          <option value="desc">Mayor precio</option>
+        </select>
+        <button data-testid="btn-limpiar" className={styles.btnLimpiar} onClick={handleLimpiarFiltros}>
+          Limpiar filtros
+        </button>
+      </div>
 
-      {/* CA2: Filtro por categoría */}
-      <select
-        data-testid="filtro-categoria"
-        value={categoriaSeleccionada}
-        onChange={e => setCategoriaSeleccionada(e.target.value)}
-      >
-        {categorias.map(cat => (
-          <option key={cat} value={cat}>{cat}</option>
-        ))}
-      </select>
-
-      {/* CA3: Filtro por marca */}
-      <select
-        data-testid="filtro-marca"
-        value={marcaSeleccionada}
-        onChange={e => setMarcaSeleccionada(e.target.value)}
-      >
-        {marcas.map(marca => (
-          <option key={marca} value={marca}>{marca}</option>
-        ))}
-      </select>
-
-      {/* CA4: Ordenar por precio */}
-      <select
-        data-testid="orden-precio"
-        value={ordenPrecio}
-        onChange={e => setOrdenPrecio(e.target.value)}
-      >
-        <option value="ninguno">Sin orden</option>
-        <option value="asc">Menor precio</option>
-        <option value="desc">Mayor precio</option>
-      </select>
-
-      {/* CA9: Botón limpiar filtros */}
-      <button data-testid="btn-limpiar" onClick={handleLimpiarFiltros}>
-        Limpiar filtros
-      </button>
-
-      {/* CA8: Loading */}
       {loading && (
-        <div data-testid="skeleton-loader">
-          {[1,2,3,4,5].map(i => (
-            <div key={i} data-testid="skeleton-item" />
-          ))}
+        <div data-testid="skeleton-loader" className={styles.skeletonGrid}>
+          {[1,2,3,4,5].map(i => <div key={i} data-testid="skeleton-item" className={styles.skeletonCard} />)}
         </div>
       )}
 
-      {/* CA10: Error */}
       {error && (
-        <div data-testid="error-catalogo">
+        <div data-testid="error-catalogo" className={styles.error}>
           <p>Error al cargar el catálogo</p>
-          <button onClick={() => window.location.reload()}>Reintentar</button>
+          <button className={styles.btnReintentar} onClick={() => window.location.reload()}>Reintentar</button>
         </div>
       )}
 
-      {/* CA5, CA6, CA7: Lista de productos */}
       {!loading && !error && (
         <>
-          <span data-testid="contador-resultados">
+          <span data-testid="contador-resultados" className={styles.contadorResultados}>
             {productosFiltrados.length} productos encontrados
           </span>
-
           {productosFiltrados.length === 0 ? (
-            <div data-testid="sin-resultados">
+            <div data-testid="sin-resultados" className={styles.sinResultados}>
               <p>No se encontraron productos</p>
             </div>
           ) : (
-            <div data-testid="lista-productos">
+            <div data-testid="lista-productos" className={styles.grid}>
               {productosFiltrados.map(producto => (
                 <div
                   key={producto.id}
                   data-testid="producto-card"
+                  className={styles.card}
                   onClick={() => navigate(`/producto/${producto.id}`)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <span data-testid="producto-nombre">{producto.nombre}</span>
-                  <span data-testid="producto-precio">${producto.precio.toLocaleString('es-CL')}</span>
-                  <span data-testid="producto-categoria">{producto.categoria}</span>
-                  <span data-testid="producto-marca">{producto.marca}</span>
-                  <button
-                    data-testid="btn-carrito"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    Agregar al carrito
-                  </button>
+                  <div className={styles.cardImagen} />
+                  <div className={styles.cardInfo}>
+                    <span data-testid="producto-categoria" className={styles.cardCategoria}>{producto.categoria}</span>
+                    <span data-testid="producto-nombre" className={styles.cardNombre}>{producto.nombre}</span>
+                    <span data-testid="producto-marca" className={styles.cardMarca}>{producto.marca}</span>
+                    <span data-testid="producto-precio" className={styles.cardPrecio}>${producto.precio.toLocaleString('es-CL')}</span>
+                    <button data-testid="btn-carrito" className={styles.btnCarrito} onClick={e => e.stopPropagation()}>
+                      Agregar al carrito
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

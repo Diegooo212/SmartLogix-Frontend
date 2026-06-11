@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import styles from './Perfil.module.css'
 
 function Perfil() {
   const [perfil, setPerfil] = useState(null)
@@ -13,19 +14,9 @@ function Perfil() {
 
   useEffect(() => {
     fetch('/api/perfil')
-      .then(res => {
-        if (!res.ok) throw new Error('Error')
-        return res.json()
-      })
-      .then(data => {
-        setPerfil(data)
-        setForm(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
+      .then(res => { if (!res.ok) throw new Error('Error'); return res.json() })
+      .then(data => { setPerfil(data); setForm(data); setLoading(false) })
+      .catch(() => { setError(true); setLoading(false) })
   }, [])
 
   const validar = () => {
@@ -37,11 +28,7 @@ function Perfil() {
 
   const handleGuardar = async () => {
     const nuevosErrores = validar()
-    if (Object.keys(nuevosErrores).length > 0) {
-      setErrores(nuevosErrores)
-      return
-    }
-
+    if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return }
     setGuardando(true)
     try {
       const res = await fetch('/api/perfil', {
@@ -68,85 +55,82 @@ function Perfil() {
     setErrorGuardar(false)
   }
 
-  return (
-    <main>
-      <h1>Mi perfil</h1>
+  const iniciales = perfil ? `${perfil.nombre?.[0] || ''}${perfil.apellido?.[0] || ''}`.toUpperCase() : ''
 
-      {loading && <div data-testid="skeleton-loader"><div data-testid="skeleton-item" /></div>}
+  return (
+    <main className={styles.main}>
+      <h1 className={styles.titulo}>Mi perfil</h1>
+
+      {loading && (
+        <div data-testid="skeleton-loader" className={styles.skeleton}>
+          {[1,2,3,4].map(i => <div key={i} data-testid="skeleton-item" className={styles.skeletonLinea} />)}
+        </div>
+      )}
 
       {error && <div data-testid="error-perfil"><p>Error al cargar el perfil</p></div>}
 
-      {guardadoExitoso && (
-        <div data-testid="guardado-exitoso">Perfil actualizado correctamente</div>
-      )}
-
-      {errorGuardar && (
-        <div data-testid="error-guardar">Error al guardar los cambios</div>
-      )}
+      {guardadoExitoso && <div data-testid="guardado-exitoso" className={styles.exitoso}>✓ Perfil actualizado correctamente</div>}
+      {errorGuardar && <div data-testid="error-guardar" className={styles.errorGuardar}>Error al guardar los cambios</div>}
 
       {!loading && !error && perfil && (
-        <div data-testid="contenido-perfil">
-
-          {/* CA1: Datos del perfil */}
-          {!editando ? (
-            <div data-testid="vista-perfil">
-              <span data-testid="perfil-nombre">{perfil.nombre}</span>
-              <span data-testid="perfil-apellido">{perfil.apellido}</span>
-              <span data-testid="perfil-correo">{perfil.correo}</span>
-              <span data-testid="perfil-telefono">{perfil.telefono}</span>
-
-              {/* CA2: Botón editar */}
-              <button
-                data-testid="btn-editar"
-                onClick={() => setEditando(true)}
-              >
+        <div data-testid="contenido-perfil" className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.avatar}>{iniciales}</div>
+            {!editando && (
+              <button data-testid="btn-editar" className={styles.btnEditar} onClick={() => setEditando(true)}>
                 Editar perfil
               </button>
+            )}
+          </div>
+
+          {!editando ? (
+            <div data-testid="vista-perfil" className={styles.grid}>
+              <div className={styles.campo}>
+                <span className={styles.label}>Nombre</span>
+                <span data-testid="perfil-nombre" className={styles.valor}>{perfil.nombre}</span>
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Apellido</span>
+                <span data-testid="perfil-apellido" className={styles.valor}>{perfil.apellido}</span>
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Correo</span>
+                <span data-testid="perfil-correo" className={styles.valor}>{perfil.correo}</span>
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Teléfono</span>
+                <span data-testid="perfil-telefono" className={styles.valor}>{perfil.telefono}</span>
+              </div>
             </div>
           ) : (
-            /* CA3: Formulario de edición */
-            <div data-testid="form-edicion">
-              <input
-                data-testid="input-nombre"
-                value={form.nombre || ''}
-                onChange={e => setForm({ ...form, nombre: e.target.value })}
-              />
-              {errores.nombre && <span data-testid="error-nombre">{errores.nombre}</span>}
+            <div data-testid="form-edicion" className={styles.grid}>
+              <div className={styles.campo}>
+                <span className={styles.label}>Nombre</span>
+                <input data-testid="input-nombre" className={`${styles.input} ${errores.nombre ? styles.inputError : ''}`} value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} />
+                {errores.nombre && <span data-testid="error-nombre" className={styles.errorMsg}>{errores.nombre}</span>}
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Apellido</span>
+                <input data-testid="input-apellido" className={styles.input} value={form.apellido || ''} onChange={e => setForm({ ...form, apellido: e.target.value })} />
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Correo</span>
+                <input data-testid="input-correo" className={`${styles.input} ${errores.correo ? styles.inputError : ''}`} value={form.correo || ''} onChange={e => setForm({ ...form, correo: e.target.value })} />
+                {errores.correo && <span data-testid="error-correo" className={styles.errorMsg}>{errores.correo}</span>}
+              </div>
+              <div className={styles.campo}>
+                <span className={styles.label}>Teléfono</span>
+                <input data-testid="input-telefono" className={styles.input} value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} />
+              </div>
 
-              <input
-                data-testid="input-apellido"
-                value={form.apellido || ''}
-                onChange={e => setForm({ ...form, apellido: e.target.value })}
-              />
-
-              <input
-                data-testid="input-correo"
-                value={form.correo || ''}
-                onChange={e => setForm({ ...form, correo: e.target.value })}
-              />
-              {errores.correo && <span data-testid="error-correo">{errores.correo}</span>}
-
-              <input
-                data-testid="input-telefono"
-                value={form.telefono || ''}
-                onChange={e => setForm({ ...form, telefono: e.target.value })}
-              />
-
-              {/* CA4: Botones guardar y cancelar */}
-              <button
-                data-testid="btn-guardar"
-                onClick={handleGuardar}
-                disabled={guardando}
-              >
-                {guardando ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-
-              <button
-                data-testid="btn-cancelar"
-                onClick={handleCancelar}
-              >
-                Cancelar
-              </button>
+              <div className={styles.acciones}>
+                <button data-testid="btn-guardar" className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando}>
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                <button data-testid="btn-cancelar" className={styles.btnCancelar} onClick={handleCancelar}>
+                  Cancelar
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import styles from './Login.module.css'
 
 function Login() {
   const navigate = useNavigate()
@@ -24,11 +25,7 @@ function Login() {
 
   const handleSubmit = async () => {
     const nuevosErrores = validar()
-    if (Object.keys(nuevosErrores).length > 0) {
-      setErrores(nuevosErrores)
-      return
-    }
-
+    if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/login', {
@@ -47,68 +44,59 @@ function Login() {
   }
 
   return (
-    <main>
-      <h1>Iniciar sesión</h1>
-
-      {/* CA7: Login exitoso */}
-      {exitoso && (
-        <div data-testid="login-exitoso">
-          Bienvenido de vuelta. Redirigiendo...
+    <main className={styles.main}>
+      <div className={styles.card}>
+        <div className={styles.logo}>
+          Smart<span className={styles.logoAccent}>Logix</span>
         </div>
-      )}
+        <h1 className={styles.titulo}>Iniciar sesión</h1>
 
-      {/* CA6: Error de credenciales */}
-      {errorServidor && (
-        <div data-testid="error-credenciales">
-          Correo o contraseña incorrectos
+        {exitoso && <div data-testid="login-exitoso" className={styles.exitoso}>Bienvenido de vuelta. Redirigiendo...</div>}
+        {errorServidor && <div data-testid="error-credenciales" className={styles.errorCredenciales}>Correo o contraseña incorrectos</div>}
+
+        <div className={styles.form}>
+          <div className={styles.campo}>
+            <label className={styles.label}>Correo electrónico</label>
+            <input
+              data-testid="input-correo"
+              name="correo"
+              type="email"
+              className={`${styles.input} ${errores.correo ? styles.inputError : ''}`}
+              placeholder="tu@correo.cl"
+              value={form.correo}
+              onChange={handleChange}
+            />
+            {errores.correo && <span data-testid="error-correo" className={styles.errorMsg}>{errores.correo}</span>}
+          </div>
+
+          <div className={styles.campo}>
+            <label className={styles.label}>Contraseña</label>
+            <input
+              data-testid="input-password"
+              name="password"
+              type="password"
+              className={`${styles.input} ${errores.password ? styles.inputError : ''}`}
+              placeholder="••••••••"
+              value={form.password}
+              onChange={handleChange}
+            />
+            {errores.password && <span data-testid="error-password" className={styles.errorMsg}>{errores.password}</span>}
+          </div>
+
+          <button data-testid="btn-login" className={styles.btnSubmit} onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+          </button>
         </div>
-      )}
 
-      {/* CA1: Campos del formulario */}
-      <input
-        data-testid="input-correo"
-        name="correo"
-        type="email"
-        placeholder="Correo electrónico"
-        value={form.correo}
-        onChange={handleChange}
-      />
-      {errores.correo && <span data-testid="error-correo">{errores.correo}</span>}
-
-      <input
-        data-testid="input-password"
-        name="password"
-        type="password"
-        placeholder="Contraseña"
-        value={form.password}
-        onChange={handleChange}
-      />
-      {errores.password && <span data-testid="error-password">{errores.password}</span>}
-
-      {/* CA2: Botón iniciar sesión */}
-      <button
-        data-testid="btn-login"
-        onClick={handleSubmit}
-        disabled={loading}
-      >
-        {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-      </button>
-
-      {/* CA4: Link a registro */}
-      <button
-        data-testid="link-registro"
-        onClick={() => navigate('/registro')}
-      >
-        ¿No tienes cuenta? Regístrate
-      </button>
-
-      {/* CA5: Link recuperar contraseña */}
-      <button
-        data-testid="link-recuperar"
-        onClick={() => navigate('/recuperar-password')}
-      >
-        ¿Olvidaste tu contraseña?
-      </button>
+        <div className={styles.links}>
+          <button data-testid="link-recuperar" className={styles.link} onClick={() => navigate('/recuperar-password')}>
+            ¿Olvidaste tu contraseña?
+          </button>
+          <button data-testid="link-registro" className={styles.link} onClick={() => navigate('/registro')}>
+            ¿No tienes cuenta? Regístrate
+          </button>
+        </div>
+      </div>
     </main>
   )
 }

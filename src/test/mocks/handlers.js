@@ -107,4 +107,8 @@ export const handlers = [
 http.put('/api/productos/:id/oferta', () => {
   return HttpResponse.json({ success: true })
   }),
+
+  http.post('/api/auth/admin/login', () => {
+  return HttpResponse.json({ token: 'fake-admin-token', rol: 'admin' })
+  }),
 ]

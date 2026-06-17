@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './Login.module.css'
+import { useAuth } from '../../../context/AuthContext'
 
 function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({ correo: '', password: '' })
   const [errores, setErrores] = useState({})
   const [loading, setLoading] = useState(false)
@@ -24,24 +26,26 @@ function Login() {
   }
 
   const handleSubmit = async () => {
-    const nuevosErrores = validar()
-    if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return }
-    setLoading(true)
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      if (!res.ok) throw new Error('Credenciales incorrectas')
-      setExitoso(true)
-      setTimeout(() => navigate('/'), 2000)
-    } catch {
-      setErrorServidor(true)
-    } finally {
-      setLoading(false)
+      const nuevosErrores = validar()
+      if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return }
+      setLoading(true)
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+        if (!res.ok) throw new Error('Credenciales incorrectas')
+        const data = await res.json()
+        login(data.usuario)
+        setExitoso(true)
+        setTimeout(() => navigate('/'), 2000)
+      } catch {
+        setErrorServidor(true)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
   return (
     <main className={styles.main}>

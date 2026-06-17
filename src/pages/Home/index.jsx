@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ProductoCard from '../../components/common/ProductoCard'
 import styles from './Home.module.css'
 
 function Home() {
-  const [productos, setProductos] = useState([])
   const [destacados, setDestacados] = useState([])
+  const [productosGenerales, setProductosGenerales] = useState([]) // NUEVO ESTADO
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [carruselIndex, setCarruselIndex] = useState(0)
@@ -19,9 +20,10 @@ function Home() {
         return res.json()
       })
       .then(data => {
-        setProductos(data)
         const soloDestacados = data.filter(p => p.destacado).slice(0, 10)
         setDestacados(soloDestacados)
+        // Guardamos los primeros 8 productos para la grilla de abajo
+        setProductosGenerales(data.slice(0, 8)) 
         setLoading(false)
         animarContadores()
       })
@@ -51,8 +53,8 @@ function Home() {
         return res.json()
       })
       .then(data => {
-        setProductos(data)
         setDestacados(data.filter(p => p.destacado).slice(0, 10))
+        setProductosGenerales(data.slice(0, 8))
         setLoading(false)
       })
       .catch(() => {
@@ -92,32 +94,32 @@ function Home() {
       {/* Contadores */}
       <section data-testid="hero-contadores" className={styles.contadores}>
         <div className={styles.contador}>
-          <span data-testid="contador-productos" className={styles.contadorNumero}>
-            +{contadorProductos}
-          </span>
+          <span data-testid="contador-productos" className={styles.contadorNumero}>+{contadorProductos}</span>
           <span className={styles.contadorLabel}>Productos</span>
         </div>
         <div className={styles.contadorDivider} />
         <div className={styles.contador}>
-          <span data-testid="contador-clientes" className={styles.contadorNumero}>
-            +{contadorClientes}
-          </span>
+          <span data-testid="contador-clientes" className={styles.contadorNumero}>+{contadorClientes}</span>
           <span className={styles.contadorLabel}>Clientes</span>
         </div>
       </section>
 
-      {/* Carrusel */}
+      {/* Sección 1: Productos Destacados (Carrusel) */}
       <section className={styles.seccion}>
-        <h2 className={styles.seccionTitulo}>Productos <span className={styles.accent}>Destacados</span></h2>
+        <h2 className={styles.seccionTitulo}>
+          Productos <span className={styles.accent}>Destacados</span>
+        </h2>
 
+        {/* Loader Skeleton */}
         {loading && (
-          <div data-testid="skeleton-loader" className={styles.skeletonGrid}>
-            {[1,2,3,4,5].map(i => (
+          <div data-testid="skeleton-loader" className={styles.gridProductos}>
+            {[1, 2, 3].map(i => (
               <div key={i} data-testid="skeleton-item" className={styles.skeletonCard} />
             ))}
           </div>
         )}
 
+        {/* Mensaje de Error */}
         {error && (
           <div data-testid="error-productos" className={styles.error}>
             <p>Error al cargar las ofertas</p>
@@ -127,47 +129,70 @@ function Home() {
           </div>
         )}
 
+        {/* Carrusel 3D */}
         {!loading && !error && (
-          <div data-testid="carrusel-destacados" className={styles.carrusel}>
-            <button data-testid="btn-anterior" className={styles.carruselBtn} onClick={handleAnterior}>
-              ←
+          <div data-testid="carrusel-destacados" className={styles.carruselContenedor}>
+            <button data-testid="btn-anterior" className={`${styles.carruselBtn} ${styles.btnLeft}`} onClick={handleAnterior}>
+              ❮
             </button>
-            <div data-testid="lista-productos" className={styles.carruselGrid}>
-              {destacados.map(producto => (
-                <div
-                  key={producto.id}
-                  data-testid="producto-card"
-                  className={styles.card}
-                  onClick={() => navigate(`/producto/${producto.id}`)}
-                >
-                  <div className={styles.cardImagen} />
-                  <div className={styles.cardInfo}>
-                    <span data-testid="producto-categoria" className={styles.cardCategoria}>
-                      {producto.categoria}
-                    </span>
-                    <span data-testid="producto-nombre" className={styles.cardNombre}>
-                      {producto.nombre}
-                    </span>
-                    <span data-testid="producto-precio" className={styles.cardPrecio}>
-                      ${producto.precio.toLocaleString('es-CL')}
-                    </span>
-                    <button
-                      data-testid="btn-carrito"
-                      className={styles.btnCarrito}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      Agregar al carrito
-                    </button>
+
+            <div className={styles.carruselPista}>
+              {destacados.map((producto, index) => {
+                let posicion = styles.oculto;
+                
+                if (index === carruselIndex) {
+                  posicion = styles.centro;
+                } else if (index === (carruselIndex - 1 + destacados.length) % destacados.length) {
+                  posicion = styles.izquierda;
+                } else if (index === (carruselIndex + 1) % destacados.length) {
+                  posicion = styles.derecha;
+                }
+
+                return (
+                  <div 
+                    key={`destacado-${producto.id}`} 
+                    className={`${styles.carruselItem} ${posicion}`}
+                    onClick={() => {
+                      if (posicion === styles.izquierda) handleAnterior();
+                      if (posicion === styles.derecha) handleSiguiente();
+                    }}
+                  >
+                    <ProductoCard producto={producto} />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <button data-testid="btn-siguiente" className={styles.carruselBtn} onClick={handleSiguiente}>
-              →
+
+            <button data-testid="btn-siguiente" className={`${styles.carruselBtn} ${styles.btnRight}`} onClick={handleSiguiente}>
+              ❯
             </button>
           </div>
         )}
       </section>
+
+      {/* NUEVA SECCIÓN: Catálogo General (Grilla) */}
+      <section className={styles.seccion}>
+        <h2 className={styles.seccionTitulo}>
+          Nuevos <span className={styles.accent}>Ingresos</span>
+        </h2>
+
+        {loading && (
+          <div className={styles.gridProductos}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <div key={`skeleton-grid-${i}`} className={styles.skeletonCard} />
+            ))}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className={styles.gridProductos}>
+            {productosGenerales.map(producto => (
+              <ProductoCard key={`grilla-${producto.id}`} producto={producto} />
+            ))}
+          </div>
+        )}
+      </section>
+
     </main>
   )
 }

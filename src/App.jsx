@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import { CarritoProvider } from './context/CarritoContext'
 import Layout from './components/layout/Layout'
 import AdminLayout from './components/layout/AdminLayout'
+import ProtectedAdminRoute from './components/auth/ProtectedAdminRoute'
 import Home from './pages/Home'
 import Catalogo from './pages/Catalogo'
 import Producto from './pages/Producto'
@@ -16,37 +19,51 @@ import AdminProductos from './pages/Admin/Productos'
 import AdminPedidos from './pages/Admin/Pedidos'
 import AdminInventario from './pages/Admin/Inventario'
 import AdminPromociones from './pages/Admin/Promociones'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import { DireccionesProvider } from './context/DireccionesContext'
+import { HistorialProvider } from './context/HistorialContext'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rutas públicas */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="catalogo" element={<Catalogo />} />
-          <Route path="producto/:id" element={<Producto />} />
-          <Route path="login" element={<Login />} />
-          <Route path="registro" element={<Register />} />
-          <Route path="recuperar-password" element={<RecuperarPassword />} />
-          <Route path="perfil" element={<Perfil />} />
-          <Route path="carrito" element={<Carrito />} />
-          <Route path="checkout" element={<Checkout />} />
-        </Route>
+    <AuthProvider>
+      <CarritoProvider>
+        <DireccionesProvider>
+          <HistorialProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Home />} />
+                  <Route path="catalogo" element={<Catalogo />} />
+                  <Route path="producto/:id" element={<Producto />} />
+                  <Route path="login" element={<Login />} />
+                  <Route path="registro" element={<Register />} />
+                  <Route path="recuperar-password" element={<RecuperarPassword />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="perfil" element={<Perfil />} />
+                  </Route>
+                  <Route path="carrito" element={<Carrito />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="checkout" element={<Checkout />} />
+                  </Route>
+                </Route>
 
-        {/* Login admin */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Rutas admin */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="productos" element={<AdminProductos />} />
-          <Route path="pedidos" element={<AdminPedidos />} />
-          <Route path="inventario" element={<AdminInventario />} />
-          <Route path="promociones" element={<AdminPromociones />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+                <Route element={<ProtectedAdminRoute />}>
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="productos" element={<AdminProductos />} />
+                    <Route path="pedidos" element={<AdminPedidos />} />
+                    <Route path="inventario" element={<AdminInventario />} />
+                    <Route path="promociones" element={<AdminPromociones />} />
+                  </Route>
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </HistorialProvider>
+        </DireccionesProvider>
+      </CarritoProvider>
+    </AuthProvider>
   )
 }
 

@@ -1,31 +1,37 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useCarrito } from '../../context/CarritoContext'
+import { useAuth } from '../../context/AuthContext'
 import styles from './Navbar.module.css'
 
 function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const { cantidadTotal } = useCarrito()
+  const { usuario, logout, estaAutenticado } = useAuth()
 
   const links = [
     { label: 'Inicio', path: '/' },
     { label: 'Catálogo', path: '/catalogo' },
-    { label: 'Carrito', path: '/carrito' },
   ]
 
   const isActive = (path) => location.pathname === path
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
 
-        {/* Logo */}
         <div className={styles.logo} onClick={() => navigate('/')}>
           <span className={styles.logoText}>Smart</span>
           <span className={styles.logoAccent}>Logix</span>
         </div>
 
-        {/* Links desktop */}
         <ul className={styles.links}>
           {links.map(link => (
             <li key={link.path}>
@@ -39,34 +45,42 @@ function Navbar() {
           ))}
         </ul>
 
-        {/* Acciones */}
         <div className={styles.acciones}>
-          <button
-            className={styles.btnLogin}
-            onClick={() => navigate('/login')}
-          >
-            Iniciar sesión
+          <button className={styles.btnCarrito} onClick={() => navigate('/carrito')}>
+            🛒
+            {cantidadTotal > 0 && (
+              <span data-testid="carrito-contador" className={styles.carritoContador}>
+                {cantidadTotal}
+              </span>
+            )}
           </button>
-          <button
-            className={styles.btnRegistro}
-            onClick={() => navigate('/registro')}
-          >
-            Registrarse
-          </button>
+
+          {estaAutenticado ? (
+            <>
+              <button className={styles.linkPerfil} onClick={() => navigate('/perfil')}>
+                {usuario.nombre}
+              </button>
+              <button className={styles.btnLogin} onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button className={styles.btnLogin} onClick={() => navigate('/login')}>
+                Iniciar sesión
+              </button>
+              <button className={styles.btnRegistro} onClick={() => navigate('/registro')}>
+                Registrarse
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Menú hamburguesa mobile */}
-        <button
-          className={styles.hamburguesa}
-          onClick={() => setMenuAbierto(!menuAbierto)}
-        >
-          <span />
-          <span />
-          <span />
+        <button className={styles.hamburguesa} onClick={() => setMenuAbierto(!menuAbierto)}>
+          <span /><span /><span />
         </button>
       </div>
 
-      {/* Menú mobile */}
       {menuAbierto && (
         <div className={styles.menuMobile}>
           {links.map(link => (
@@ -78,12 +92,29 @@ function Navbar() {
               {link.label}
             </button>
           ))}
-          <button className={styles.btnLogin} onClick={() => navigate('/login')}>
-            Iniciar sesión
+          <button className={styles.linkMobile} onClick={() => { navigate('/carrito'); setMenuAbierto(false) }}>
+            🛒 Carrito {cantidadTotal > 0 && `(${cantidadTotal})`}
           </button>
-          <button className={styles.btnRegistro} onClick={() => navigate('/registro')}>
-            Registrarse
-          </button>
+
+          {estaAutenticado ? (
+            <>
+              <button className={styles.linkMobile} onClick={() => { navigate('/perfil'); setMenuAbierto(false) }}>
+                {usuario.nombre}
+              </button>
+              <button className={styles.btnLogin} onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button className={styles.btnLogin} onClick={() => navigate('/login')}>
+                Iniciar sesión
+              </button>
+              <button className={styles.btnRegistro} onClick={() => navigate('/registro')}>
+                Registrarse
+              </button>
+            </>
+          )}
         </div>
       )}
     </nav>

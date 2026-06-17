@@ -21,6 +21,17 @@ const llenarFormulario = (overrides = {}) => {
 
 describe('HU-05 · Inicio de sesión', () => {
 
+  beforeEach(() => {
+  server.use(
+    http.post('/api/auth/login', () => {
+      return HttpResponse.json({
+        token: 'fake-token',
+        usuario: { nombre: 'Diego', correo: 'diego@test.cl' }
+      })
+    })
+  )
+})
+
   it('CA1: muestra los campos de correo y contraseña', () => {
     renderWithProviders(<Login />)
     expect(screen.getByTestId('input-correo')).toBeInTheDocument()

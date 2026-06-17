@@ -1,39 +1,25 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useCarrito } from '../../context/CarritoContext'
 import styles from './Carrito.module.css'
-
-const productosIniciales = [
-  { id: 1, nombre: 'Laptop Gamer', precio: 899990, cantidad: 1, stock: 10 },
-  { id: 2, nombre: 'Mouse Inalámbrico', precio: 24990, cantidad: 2, stock: 25 },
-]
 
 function Carrito() {
   const navigate = useNavigate()
-  const [items, setItems] = useState(productosIniciales)
-  const [eliminado, setEliminado] = useState(false)
+  const {
+    items,
+    incrementarCantidad,
+    decrementarCantidad,
+    eliminarProducto,
+    vaciarCarrito,
+    total,
+  } = useCarrito()
 
-  const handleIncrementar = id => setItems(items.map(item =>
-    item.id === id && item.cantidad < item.stock ? { ...item, cantidad: item.cantidad + 1 } : item
-  ))
-
-  const handleDecrementar = id => setItems(items.map(item =>
-    item.id === id && item.cantidad > 1 ? { ...item, cantidad: item.cantidad - 1 } : item
-  ))
-
-  const handleEliminar = id => {
-    setItems(items.filter(item => item.id !== id))
-    setEliminado(true)
-    setTimeout(() => setEliminado(false), 2000)
+  const handleEliminar = (id) => {
+    eliminarProducto(id)
   }
-
-  const handleVaciar = () => setItems([])
-  const total = items.reduce((acc, item) => acc + item.precio * item.cantidad, 0)
 
   return (
     <main className={styles.main}>
       <h1 className={styles.titulo}>Mi carrito</h1>
-
-      {eliminado && <div data-testid="confirmacion-eliminado" className={styles.confirmacion}>✓ Producto eliminado del carrito</div>}
 
       {items.length === 0 ? (
         <div data-testid="carrito-vacio" className={styles.vacio}>
@@ -55,9 +41,9 @@ function Carrito() {
                 </div>
                 <div className={styles.itemAcciones}>
                   <div data-testid="selector-cantidad" className={styles.selectorCantidad}>
-                    <button data-testid={`btn-decrementar-${item.id}`} className={styles.btnCantidad} onClick={() => handleDecrementar(item.id)}>-</button>
+                    <button data-testid={`btn-decrementar-${item.id}`} className={styles.btnCantidad} onClick={() => decrementarCantidad(item.id)}>-</button>
                     <span data-testid={`cantidad-${item.id}`} className={styles.cantidad}>{item.cantidad}</span>
-                    <button data-testid={`btn-incrementar-${item.id}`} className={styles.btnCantidad} onClick={() => handleIncrementar(item.id)}>+</button>
+                    <button data-testid={`btn-incrementar-${item.id}`} className={styles.btnCantidad} onClick={() => incrementarCantidad(item.id)}>+</button>
                   </div>
                   <span data-testid="item-subtotal" className={styles.subtotal}>${(item.precio * item.cantidad).toLocaleString('es-CL')}</span>
                   <button data-testid={`btn-eliminar-${item.id}`} className={styles.btnEliminar} onClick={() => handleEliminar(item.id)}>Eliminar</button>
@@ -78,7 +64,7 @@ function Carrito() {
             <button data-testid="btn-seguir-comprando" className={styles.btnSeguir} onClick={() => navigate('/catalogo')}>
               Seguir comprando
             </button>
-            <button data-testid="btn-vaciar" className={styles.btnVaciar} onClick={handleVaciar}>
+            <button data-testid="btn-vaciar" className={styles.btnVaciar} onClick={vaciarCarrito}>
               Vaciar carrito
             </button>
           </div>

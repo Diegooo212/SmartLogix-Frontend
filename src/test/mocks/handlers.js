@@ -1,16 +1,28 @@
 import { http, HttpResponse } from 'msw'
 
+
+const getUsuariosRegistrados = () => {
+    if (typeof localStorage === 'undefined') return []
+    const data = localStorage.getItem('usuarios_registrados')
+    return data ? JSON.parse(data) : []
+  }
+
+  const guardarUsuarios = (usuarios) => {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios))
+  }
+
 export const handlers = [
   // HU-01, 02, 03 — Productos
   http.get('/api/productos', () => {
   return HttpResponse.json([
-    { id: 1, nombre: 'Laptop Gamer', precio: 899990, categoria: 'Computación', marca: 'ASUS', stock: 10, destacado: true },
-    { id: 2, nombre: 'Mouse Inalámbrico', precio: 24990, categoria: 'Periféricos', marca: 'Logitech', stock: 25, destacado: true },
-    { id: 3, nombre: 'Monitor 27"', precio: 349990, categoria: 'Monitores', marca: 'Samsung', stock: 5, destacado: true },
-    { id: 4, nombre: 'Teclado Mecánico', precio: 79990, categoria: 'Periféricos', marca: 'Redragon', stock: 15, destacado: false },
-    { id: 5, nombre: 'SSD 1TB', precio: 89990, categoria: 'Almacenamiento', marca: 'Kingston', stock: 30, destacado: false },
-    { id: 6, nombre: 'Audífonos Gamer', precio: 59990, categoria: 'Audio', marca: 'HyperX', stock: 20, destacado: true },
-    { id: 7, nombre: 'Webcam HD', precio: 44990, categoria: 'Periféricos', marca: 'Logitech', stock: 8, destacado: true },
+  { id: 1, nombre: 'Laptop Gamer', precio: 899990, precioOferta: 809990, categoria: 'Computación', marca: 'ASUS', stock: 10, destacado: true, imagen: null },
+  { id: 2, nombre: 'Mouse Inalámbrico', precio: 24990, precioOferta: null, categoria: 'Periféricos', marca: 'Logitech', stock: 125, destacado: true, imagen: null },
+  { id: 3, nombre: 'Monitor 27"', precio: 349990, precioOferta: 299990, categoria: 'Monitores', marca: 'Samsung', stock: 5, destacado: true, imagen: null },
+  { id: 4, nombre: 'Teclado Mecánico', precio: 79990, precioOferta: null, categoria: 'Periféricos', marca: 'Redragon', stock: 15, destacado: false, imagen: null },
+  { id: 5, nombre: 'SSD 1TB', precio: 89990, precioOferta: null, categoria: 'Almacenamiento', marca: 'Kingston', stock: 30, destacado: false, imagen: null },
+  { id: 6, nombre: 'Audífonos Gamer', precio: 59990, precioOferta: 49990, categoria: 'Audio', marca: 'HyperX', stock: 20, destacado: true, imagen: null },
+  { id: 7, nombre: 'Webcam HD', precio: 44990, precioOferta: null, categoria: 'Periféricos', marca: 'Logitech', stock: 8, destacado: true, imagen: null },
     ])
   }),
 
@@ -19,21 +31,49 @@ export const handlers = [
       id: params.id,
       nombre: 'Laptop Gamer',
       precio: 899990,
+      precioOferta: 809990,
       categoria: 'Computación',
       marca: 'ASUS',
       stock: 10,
-      descripcion: 'Laptop de alto rendimiento',
+      descripcion: 'Laptop de alto rendimiento para gaming profesional.',
       descuento: 10,
-    })
+      garantia: '12 meses',
+      especificaciones: 'Intel Core i7, 16GB RAM, RTX 4060, SSD 512GB',
+      sobre: 'Diseñada para gamers que exigen el máximo rendimiento.',
+      imagen: null,
+      })
   }),
 
   // HU-04, 05 — Auth
-  http.post('/api/auth/register', () => {
-    return HttpResponse.json({ token: 'fake-token', usuario: { nombre: 'Diego', correo: 'diego@test.cl' } })
+
+  
+
+  http.post('/api/auth/register', async ({ request }) => {
+    const body = await request.json()
+    const usuarios = getUsuariosRegistrados()
+    const yaExiste = usuarios.find(u => u.correo === body.correo)
+    if (yaExiste) {
+      return new HttpResponse(JSON.stringify({ message: 'El correo ya está registrado' }), { status: 409 })
+    }
+    usuarios.push(body)
+    guardarUsuarios(usuarios)
+    return HttpResponse.json({
+      token: 'fake-token',
+      usuario: { nombre: body.nombre, apellido: body.apellido, correo: body.correo, telefono: body.telefono },
+    })
   }),
 
-  http.post('/api/auth/login', () => {
-    return HttpResponse.json({ token: 'fake-token', usuario: { nombre: 'Diego', correo: 'diego@test.cl' } })
+  http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json()
+    const usuarios = getUsuariosRegistrados()
+    const usuario = usuarios.find(u => u.correo === body.correo && u.password === body.password)
+    if (!usuario) {
+      return new HttpResponse(null, { status: 401 })
+    }
+    return HttpResponse.json({
+      token: 'fake-token',
+      usuario: { nombre: usuario.nombre, apellido: usuario.apellido, correo: usuario.correo, telefono: usuario.telefono },
+    })
   }),
 
   // HU-06 — Perfil

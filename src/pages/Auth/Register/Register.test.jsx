@@ -76,7 +76,7 @@ describe('HU-04 · Registro de usuario', () => {
 
   it('CA8: muestra mensaje de éxito al registrarse correctamente', async () => {
     renderWithProviders(<Register />)
-    llenarFormulario()
+    llenarFormulario({ correo: `nuevo${Date.now()}@test.cl` })
     fireEvent.click(screen.getByTestId('btn-registrar'))
     await waitFor(() => {
       expect(screen.getByTestId('registro-exitoso')).toBeInTheDocument()

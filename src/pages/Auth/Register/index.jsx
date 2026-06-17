@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './Register.module.css'
+import { useAuth } from '../../../context/AuthContext'
 
 function Register() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({ nombre: '', apellido: '', correo: '', password: '', confirmPassword: '', telefono: '' })
   const [errores, setErrores] = useState({})
   const [loading, setLoading] = useState(false)
@@ -25,7 +27,7 @@ function Register() {
     return nuevosErrores
   }
 
-  const handleSubmit = async () => {
+ const handleSubmit = async () => {
     const nuevosErrores = validar()
     if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return }
     setLoading(true)
@@ -36,6 +38,8 @@ function Register() {
         body: JSON.stringify(form),
       })
       if (!res.ok) throw new Error('Error')
+      const data = await res.json()
+      login(data.usuario)
       setExitoso(true)
       setTimeout(() => navigate('/login'), 2000)
     } catch {
@@ -43,7 +47,7 @@ function Register() {
     } finally {
       setLoading(false)
     }
-  }
+ }
 
   return (
     <main className={styles.main}>

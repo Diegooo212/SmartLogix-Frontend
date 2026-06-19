@@ -1,35 +1,17 @@
 import { useState, useEffect } from 'react'
 import ProductoCard from '../../components/common/ProductoCard'
 import styles from './Catalogo.module.css'
+import { useProductos } from '../../context/ProductosContext'
 
 function Catalogo() {
-  const [productos, setProductos] = useState([])
+  const { productos, loading, error } = useProductos()
   const [productosFiltrados, setProductosFiltrados] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas')
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('Todas')
   const [ordenPrecio, setOrdenPrecio] = useState('ninguno')
   const [precioMin, setPrecioMin] = useState('')
   const [precioMax, setPrecioMax] = useState('')
-
-  useEffect(() => {
-    fetch('/api/productos')
-      .then(res => {
-        if (!res.ok) throw new Error('Error del servidor')
-        return res.json()
-      })
-      .then(data => {
-        setProductos(data)
-        setProductosFiltrados(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
-  }, [])
 
   useEffect(() => {
     let resultado = [...productos]

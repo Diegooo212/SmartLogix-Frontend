@@ -2,15 +2,24 @@ import { http, HttpResponse } from 'msw'
 
 
 const getUsuariosRegistrados = () => {
-    if (typeof localStorage === 'undefined') return []
-    const data = localStorage.getItem('usuarios_registrados')
-    return data ? JSON.parse(data) : []
-  }
+  if (typeof localStorage === 'undefined') return []
+  const data = localStorage.getItem('usuarios_registrados')
+  return data ? JSON.parse(data) : []
+}
 
-  const guardarUsuarios = (usuarios) => {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios))
-  }
+const guardarUsuarios = (usuarios) => {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios))
+}
+
+// Admin precargado
+const ADMIN = {
+  nombre: 'Admin',
+  apellido: 'SmartLogix',
+  correo: 'admin@smartlogix.cl',
+  password: 'admin12345',
+  rol: 'admin',
+}
 
 export const handlers = [
   // HU-01, 02, 03 — Productos
@@ -51,6 +60,9 @@ export const handlers = [
   http.post('/api/auth/register', async ({ request }) => {
     const body = await request.json()
     const usuarios = getUsuariosRegistrados()
+    if (body.correo === ADMIN.correo) {
+      return new HttpResponse(JSON.stringify({ message: 'El correo ya está registrado' }), { status: 409 })
+    }
     const yaExiste = usuarios.find(u => u.correo === body.correo)
     if (yaExiste) {
       return new HttpResponse(JSON.stringify({ message: 'El correo ya está registrado' }), { status: 409 })
@@ -59,12 +71,20 @@ export const handlers = [
     guardarUsuarios(usuarios)
     return HttpResponse.json({
       token: 'fake-token',
-      usuario: { nombre: body.nombre, apellido: body.apellido, correo: body.correo, telefono: body.telefono },
+      usuario: { nombre: body.nombre, apellido: body.apellido, correo: body.correo, telefono: body.telefono, rol: 'usuario' },
     })
   }),
 
   http.post('/api/auth/login', async ({ request }) => {
     const body = await request.json()
+    // Verificar si es admin
+    if (body.correo === ADMIN.correo && body.password === ADMIN.password) {
+      return HttpResponse.json({
+        token: 'fake-admin-token',
+        usuario: { nombre: ADMIN.nombre, apellido: ADMIN.apellido, correo: ADMIN.correo, rol: 'admin' },
+      })
+    }
+    // Verificar usuarios registrados
     const usuarios = getUsuariosRegistrados()
     const usuario = usuarios.find(u => u.correo === body.correo && u.password === body.password)
     if (!usuario) {
@@ -72,7 +92,7 @@ export const handlers = [
     }
     return HttpResponse.json({
       token: 'fake-token',
-      usuario: { nombre: usuario.nombre, apellido: usuario.apellido, correo: usuario.correo, telefono: usuario.telefono },
+      usuario: { nombre: usuario.nombre, apellido: usuario.apellido, correo: usuario.correo, telefono: usuario.telefono, rol: 'usuario' },
     })
   }),
 
@@ -89,12 +109,44 @@ export const handlers = [
   return HttpResponse.json({ numeroPedido: '12345' })
   }),
   
-  http.post('/api/productos', () => {
-  return HttpResponse.json({ id: 6, nombre: 'Nuevo Producto', precio: 99990, categoria: 'Test', marca: 'Test', stock: 10 })
+  http.post('/api/productos', async ({ request }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: Date.now(),
+      nombre: body.nombre,
+      precio: Number(body.precio),
+      categoria: body.categoria,
+      marca: body.marca,
+      stock: Number(body.stock) || 0,
+      descripcion: body.descripcion || '',
+      imagen: body.imagen || null,
+      garantia: body.garantia || '',
+      especificaciones: body.especificaciones || '',
+      sobre: body.sobre || '',
+      precioOferta: body.precioOferta ? Number(body.precioOferta) : null,
+      destacado: false,
+      enOferta: false,
+    })
   }),
 
-  http.put('/api/productos/:id', () => {
-    return HttpResponse.json({ id: 1, nombre: 'Laptop Gamer Editado', precio: 899990, categoria: 'Computación', marca: 'ASUS', stock: 10 })
+  http.put('/api/productos/:id', async ({ request, params }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: Number(params.id),
+      nombre: body.nombre,
+      precio: Number(body.precio),
+      categoria: body.categoria,
+      marca: body.marca,
+      stock: Number(body.stock) || 0,
+      descripcion: body.descripcion || '',
+      imagen: body.imagen || null,
+      garantia: body.garantia || '',
+      especificaciones: body.especificaciones || '',
+      sobre: body.sobre || '',
+      precioOferta: body.precioOferta ? Number(body.precioOferta) : null,
+      destacado: body.destacado || false,
+      enOferta: body.enOferta || false,
+    })
   }),
 
   http.delete('/api/productos/:id', () => {
@@ -140,15 +192,20 @@ export const handlers = [
   return HttpResponse.json({ success: true })
   }),
 
-   http.put('/api/productos/:id/destacado', () => {
-  return HttpResponse.json({ success: true })
+   http.put('/api/productos/:id/destacado', async ({ request, params }) => {
+    const body = await request.json()
+    return HttpResponse.json({ id: Number(params.id), destacado: body.destacado })
   }),
 
 http.put('/api/productos/:id/oferta', () => {
   return HttpResponse.json({ success: true })
   }),
 
-  http.post('/api/auth/admin/login', () => {
-  return HttpResponse.json({ token: 'fake-admin-token', rol: 'admin' })
+  http.post('/api/auth/admin/login', async ({ request }) => {
+    const body = await request.json()
+    if (body.correo === ADMIN.correo && body.password === ADMIN.password) {
+      return HttpResponse.json({ token: 'fake-admin-token', rol: 'admin' })
+    }
+    return new HttpResponse(null, { status: 401 })
   }),
 ]

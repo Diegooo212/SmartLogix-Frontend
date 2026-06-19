@@ -8,6 +8,7 @@ function ProductoCard({ producto }) {
 
   const stockTexto = producto.stock > 100 ? '+100 Unid.' : `${producto.stock} Unid.`
   const tieneOferta = producto.precioOferta && producto.precioOferta < producto.precio
+  const agotado = producto.stock === 0
 
   return (
     <div
@@ -15,7 +16,6 @@ function ProductoCard({ producto }) {
       className={styles.card}
       onClick={() => navigate(`/producto/${producto.id}`)}
     >
-      {/* Imagen */}
       <div className={styles.imagenWrapper}>
         {producto.imagen
           ? <img src={producto.imagen} alt={producto.nombre} className={styles.imagen} />
@@ -24,16 +24,14 @@ function ProductoCard({ producto }) {
             </div>
         }
 
-        {/* Badge oferta — arriba izquierda */}
         {tieneOferta && (
           <span className={styles.badgeOferta}>
             -{Math.round((1 - producto.precioOferta / producto.precio) * 100)}%
           </span>
         )}
 
-        {/* Badge stock — arriba derecha */}
-        <span className={`${styles.badgeStock} ${producto.stock <= 5 ? styles.badgeStockBajo : ''}`}>
-          {stockTexto}
+        <span className={`${styles.badgeStock} ${agotado ? styles.badgeStockAgotado : producto.stock <= 5 ? styles.badgeStockBajo : ''}`}>
+          {agotado ? 'Agotado' : stockTexto}
         </span>
       </div>
 
@@ -44,19 +42,24 @@ function ProductoCard({ producto }) {
 
         <div className={styles.precios}>
           {tieneOferta && (
-            <span className={styles.precioOriginal}>${producto.precio.toLocaleString('es-CL')}</span>
+            <span className={styles.precioOriginal}>${Number(producto.precio).toLocaleString('es-CL')}</span>
           )}
           <span data-testid="producto-precio" className={styles.cardPrecio}>
-            ${(tieneOferta ? producto.precioOferta : producto.precio).toLocaleString('es-CL')}
+            ${Number(tieneOferta ? producto.precioOferta : producto.precio).toLocaleString('es-CL')}
           </span>
         </div>
 
         <button
           data-testid="btn-carrito"
-          className={styles.btnCarrito}
-          onClick={e => { e.stopPropagation(); agregarProducto(producto, 1) }}
+          className={`${styles.btnCarrito} ${agotado ? styles.btnCarritoAgotado : ''}`}
+          onClick={e => {
+            e.stopPropagation()
+            if (agotado) return
+            agregarProducto(producto, 1)
+          }}
+          disabled={agotado}
         >
-          Agregar al carrito
+          {agotado ? 'Sin stock' : 'Agregar al carrito'}
         </button>
       </div>
     </div>

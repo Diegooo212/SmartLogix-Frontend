@@ -9,7 +9,7 @@ const direccionInicial = { calle: '', numero: '', ciudad: '', region: '', refere
 function Perfil() {
   const { usuario, login } = useAuth()
   const { direcciones, agregarDireccion, eliminarDireccion, marcarPredeterminada } = useDirecciones()
-  const { historial } = useHistorial()
+  const { historial, recargarHistorial } = useHistorial()
   const [form, setForm] = useState(usuario || {})
   const [editando, setEditando] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -88,20 +88,30 @@ function Perfil() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {[
-          { id: 'perfil', label: '👤 Mi perfil' },
-          { id: 'direcciones', label: '📍 Direcciones' },
-          { id: 'historial', label: '📦 Historial' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            data-testid={`tab-${tab.id}`}
-            className={`${styles.tab} ${seccionActiva === tab.id ? styles.tabActivo : ''}`}
-            onClick={() => setSeccionActiva(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <button
+          data-testid="tab-perfil"
+          className={`${styles.tab} ${seccionActiva === 'perfil' ? styles.tabActivo : ''}`}
+          onClick={() => setSeccionActiva('perfil')}
+        >
+          👤 Mi perfil
+        </button>
+        <button
+          data-testid="tab-direcciones"
+          className={`${styles.tab} ${seccionActiva === 'direcciones' ? styles.tabActivo : ''}`}
+          onClick={() => setSeccionActiva('direcciones')}
+        >
+          📍 Direcciones
+        </button>
+        <button
+          data-testid="tab-historial"
+          className={`${styles.tab} ${seccionActiva === 'historial' ? styles.tabActivo : ''}`}
+          onClick={() => {
+            setSeccionActiva('historial')
+            recargarHistorial()
+          }}
+        >
+          📦 Historial
+        </button>
       </div>
 
       {/* Tab Perfil */}
@@ -185,7 +195,6 @@ function Perfil() {
             </button>
           </div>
 
-          {/* Lista de direcciones */}
           {direcciones.length === 0 && !agregandoDireccion ? (
             <div data-testid="sin-direcciones" className={styles.sinDatos}>
               <span>📍</span>
@@ -224,7 +233,6 @@ function Perfil() {
             </div>
           )}
 
-          {/* Formulario nueva dirección */}
           {agregandoDireccion && (
             <div data-testid="form-direccion" className={styles.formDireccion}>
               <h3 className={styles.formDireccionTitulo}>Nueva dirección</h3>
@@ -249,7 +257,7 @@ function Perfil() {
                   <input data-testid="input-region-dir" className={`${styles.input} ${erroresDireccion.region ? styles.inputError : ''}`} placeholder="Región" value={formDireccion.region} onChange={e => setFormDireccion({ ...formDireccion, region: e.target.value })} />
                   {erroresDireccion.region && <span data-testid="error-region" className={styles.errorMsg}>{erroresDireccion.region}</span>}
                 </div>
-                <div className={`${styles.campo}`} style={{ gridColumn: '1 / -1' }}>
+                <div className={styles.campo} style={{ gridColumn: '1 / -1' }}>
                   <span className={styles.label}>Referencia (opcional)</span>
                   <input data-testid="input-referencia" className={styles.input} placeholder="Ej: Depto 301, portón azul" value={formDireccion.referencia} onChange={e => setFormDireccion({ ...formDireccion, referencia: e.target.value })} />
                 </div>

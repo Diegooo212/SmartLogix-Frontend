@@ -21,7 +21,7 @@ export function HistorialProvider({ children }) {
   const agregarPedido = (pedido) => {
     const nuevo = {
       ...pedido,
-      id: `SL-${Date.now()}`,
+      id: pedido.id || `SL-${Date.now()}`,
       fecha: new Date().toLocaleDateString('es-CL'),
       estado: 'Pendiente',
     }
@@ -31,8 +31,23 @@ export function HistorialProvider({ children }) {
     return nuevo
   }
 
+  const actualizarEstadoPedido = (idPedido, nuevoEstado) => {
+    const nuevos = historial.map(p =>
+      String(p.id) === String(idPedido) ? { ...p, estado: nuevoEstado } : p
+    )
+    localStorage.setItem(getKey(), JSON.stringify(nuevos))
+    setHistorial(nuevos)
+  }
+
+  const recargarHistorial = () => {
+    if (usuario) {
+      const guardado = localStorage.getItem(getKey())
+      setHistorial(guardado ? JSON.parse(guardado) : [])
+    }
+  }
+
   return (
-    <HistorialContext.Provider value={{ historial, agregarPedido }}>
+    <HistorialContext.Provider value={{ historial, agregarPedido, actualizarEstadoPedido, recargarHistorial }}>
       {children}
     </HistorialContext.Provider>
   )

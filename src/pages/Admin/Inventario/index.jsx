@@ -1,28 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useProductos } from '../../../context/ProductosContext'
 import styles from './Inventario.module.css'
 
 const STOCK_MINIMO = 5
 
 function AdminInventario() {
-  const [productos, setProductos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const { productos, loading, error, actualizarStock } = useProductos()
   const [actualizando, setActualizando] = useState(null)
   const [errorActualizar, setErrorActualizar] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/productos')
-      .then(res => { if (!res.ok) throw new Error('Error'); return res.json() })
-      .then(data => { setProductos(data); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
-  }, [])
 
   const handleActualizarStock = async (id, nuevoStock) => {
     if (nuevoStock < 0) return
     const anterior = productos.find(p => p.id === id).stock
     setActualizando(id)
     setErrorActualizar(false)
-    setProductos(productos.map(p => p.id === id ? { ...p, stock: nuevoStock } : p))
+    actualizarStock(id, nuevoStock)
     try {
       const res = await fetch(`/api/productos/${id}/stock`, {
         method: 'PUT',
@@ -31,7 +23,7 @@ function AdminInventario() {
       })
       if (!res.ok) throw new Error('Error')
     } catch {
-      setProductos(productos.map(p => p.id === id ? { ...p, stock: anterior } : p))
+      actualizarStock(id, anterior)
       setErrorActualizar(true)
     } finally {
       setActualizando(null)
@@ -72,10 +64,32 @@ function AdminInventario() {
                   </td>
                   <td>
                     <div className={styles.selectorStock}>
-                      <button data-testid={`btn-decrementar-${producto.id}`} className={styles.btnStock} disabled={actualizando === producto.id} onClick={() => producto.stock > 0 && handleActualizarStock(producto.id, producto.stock - 1)}>-</button>
-                      <input data-testid={`input-stock-${producto.id}`} className={styles.inputStock} type="number" value={producto.stock} disabled={actualizando === producto.id} onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v >= 0) handleActualizarStock(producto.id, v) }} />
-                      <button data-testid={`btn-incrementar-${producto.id}`} className={styles.btnStock} disabled={actualizando === producto.id} onClick={() => handleActualizarStock(producto.id, producto.stock + 1)}>+</button>
-                      {actualizando === producto.id && <span data-testid={`actualizando-${producto.id}`} className={styles.guardando}>Guardando...</span>}
+                      <button
+                        data-testid={`btn-decrementar-${producto.id}`}
+                        className={styles.btnStock}
+                        disabled={actualizando === producto.id}
+                        onClick={() => producto.stock > 0 && handleActualizarStock(producto.id, producto.stock - 1)}
+                      >-</button>
+                      <input
+                        data-testid={`input-stock-${producto.id}`}
+                        className={styles.inputStock}
+                        type="number"
+                        value={producto.stock}
+                        disabled={actualizando === producto.id}
+                        onChange={e => {
+                          const v = parseInt(e.target.value)
+                          if (!isNaN(v) && v >= 0) handleActualizarStock(producto.id, v)
+                        }}
+                      />
+                      <button
+                        data-testid={`btn-incrementar-${producto.id}`}
+                        className={styles.btnStock}
+                        disabled={actualizando === producto.id}
+                        onClick={() => handleActualizarStock(producto.id, producto.stock + 1)}
+                      >+</button>
+                      {actualizando === producto.id && (
+                        <span data-testid={`actualizando-${producto.id}`} className={styles.guardando}>Guardando...</span>
+                      )}
                     </div>
                   </td>
                 </tr>

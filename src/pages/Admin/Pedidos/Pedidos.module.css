@@ -172,3 +172,18 @@
     overflow-x: auto;
   }
 }
+.sinPedidos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 24px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.sinPedidos span {
+  font-size: 3rem;
+  opacity: 0.4;
+}

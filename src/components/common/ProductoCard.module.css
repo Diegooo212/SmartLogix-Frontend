@@ -144,3 +144,14 @@
   opacity: 0.9;
   transform: translateY(-1px);
 }
+.btnCarritoAgotado {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.badgeStockAgotado {
+  background: rgba(239, 68, 68, 0.8) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}

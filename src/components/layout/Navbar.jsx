@@ -9,7 +9,7 @@ function Navbar() {
   const location = useLocation()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const { cantidadTotal } = useCarrito()
-  const { usuario, logout, estaAutenticado } = useAuth()
+  const { usuario, logout, estaAutenticado, esAdmin } = useAuth()
 
   const links = [
     { label: 'Inicio', path: '/' },
@@ -57,6 +57,14 @@ function Navbar() {
 
           {estaAutenticado ? (
             <>
+              {esAdmin && (
+                <button
+                  className={styles.btnAdmin}
+                  onClick={() => navigate('/admin/dashboard')}
+                >
+                  ⚙️ Admin
+                </button>
+              )}
               <button className={styles.linkPerfil} onClick={() => navigate('/perfil')}>
                 {usuario.nombre}
               </button>
@@ -95,9 +103,13 @@ function Navbar() {
           <button className={styles.linkMobile} onClick={() => { navigate('/carrito'); setMenuAbierto(false) }}>
             🛒 Carrito {cantidadTotal > 0 && `(${cantidadTotal})`}
           </button>
-
           {estaAutenticado ? (
             <>
+              {esAdmin && (
+                <button className={styles.linkMobile} onClick={() => { navigate('/admin/dashboard'); setMenuAbierto(false) }}>
+                  ⚙️ Panel Admin
+                </button>
+              )}
               <button className={styles.linkMobile} onClick={() => { navigate('/perfil'); setMenuAbierto(false) }}>
                 {usuario.nombre}
               </button>

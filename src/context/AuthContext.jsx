@@ -22,10 +22,13 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setUsuario(null)
     localStorage.removeItem('usuario')
+    localStorage.removeItem('admin_token')
   }
 
+  const esAdmin = usuario?.rol === 'admin'
+
   return (
-    <AuthContext.Provider value={{ usuario, login, logout, estaAutenticado: !!usuario, cargando }}>
+    <AuthContext.Provider value={{ usuario, login, logout, estaAutenticado: !!usuario, esAdmin, cargando }}>
       {children}
     </AuthContext.Provider>
   )

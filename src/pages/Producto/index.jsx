@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCarrito } from '../../context/CarritoContext'
+import { useProductos } from '../../context/ProductosContext'
 import styles from './Producto.module.css'
 
 function Producto() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { agregarProducto } = useCarrito()
+  const { productos } = useProductos()
   const [producto, setProducto] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -15,22 +17,30 @@ function Producto() {
   const [tabActiva, setTabActiva] = useState('descripcion')
 
   useEffect(() => {
-    fetch(`/api/productos/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Error del servidor')
-        return res.json()
-      })
-      .then(data => {
-        setProducto(data)
+    if (productos.length > 0) {
+      const encontrado = productos.find(p => String(p.id) === String(id))
+      if (encontrado) {
+        setProducto(encontrado)
         setLoading(false)
-      })
-      .catch(() => {
+      } else {
         setError(true)
         setLoading(false)
-      })
-  }, [id])
+      }
+    }
+  }, [productos, id])
+
+  useEffect(() => {
+    if (producto && productos.length > 0) {
+      const actualizado = productos.find(p => String(p.id) === String(id))
+      if (actualizado && actualizado.stock !== producto.stock) {
+        setProducto(actualizado)
+        setCantidad(c => Math.min(c, actualizado.stock || 1))
+      }
+    }
+  }, [productos])
 
   const handleAgregarCarrito = () => {
+    if (producto.stock === 0) return
     agregarProducto(producto, cantidad)
     setAgregado(true)
     setTimeout(() => setAgregado(false), 2000)
@@ -46,7 +56,9 @@ function Producto() {
         <div data-testid="skeleton-loader" className={styles.skeletonWrapper}>
           <div className={styles.skeletonImagen} />
           <div className={styles.skeletonInfo}>
-            {[1,2,3,4].map(i => <div key={i} data-testid="skeleton-item" className={styles.skeletonLinea} style={{ width: `${[80,60,40,90][i-1]}%` }} />)}
+            {[1,2,3,4].map(i => (
+              <div key={i} data-testid="skeleton-item" className={styles.skeletonLinea} style={{ width: `${[80,60,40,90][i-1]}%` }} />
+            ))}
           </div>
         </div>
       )}
@@ -54,15 +66,16 @@ function Producto() {
       {error && (
         <div data-testid="error-producto" className={styles.error}>
           <span>😕</span>
-          <p>Error al cargar el producto</p>
-          <button className={styles.btnVolver} onClick={() => navigate(-1)}>Volver</button>
+          <p>Producto no encontrado</p>
+          <button className={styles.btnVolver} onClick={() => navigate('/catalogo')}>
+            Volver al catálogo
+          </button>
         </div>
       )}
 
       {!loading && !error && producto && (
         <div data-testid="detalle-producto">
 
-          {/* Breadcrumb */}
           <div className={styles.breadcrumb}>
             <button onClick={() => navigate('/')}>Inicio</button>
             <span>›</span>
@@ -72,7 +85,6 @@ function Producto() {
           </div>
 
           <div className={styles.detalle}>
-            {/* Imagen */}
             <div className={styles.imagenWrapper}>
               {producto.imagen
                 ? <img data-testid="producto-imagen" src={producto.imagen} alt={producto.nombre} className={styles.imagen} />
@@ -87,7 +99,6 @@ function Producto() {
               )}
             </div>
 
-            {/* Info */}
             <div className={styles.info}>
               <div className={styles.infoHeader}>
                 <span data-testid="producto-categoria" className={styles.categoria}>{producto.categoria}</span>
@@ -97,15 +108,14 @@ function Producto() {
               <h1 data-testid="producto-nombre" className={styles.nombre}>{producto.nombre}</h1>
               <span data-testid="producto-marca" className={styles.marca}>Marca: {producto.marca}</span>
 
-              {/* Precios */}
               <div className={styles.precios}>
                 {tieneOferta && (
                   <span data-testid="precio-original" className={styles.precioOriginal}>
-                    ${producto.precio.toLocaleString('es-CL')}
+                    ${Number(producto.precio).toLocaleString('es-CL')}
                   </span>
                 )}
                 <span data-testid="precio-final" className={styles.precioFinal}>
-                  ${precioFinal?.toLocaleString('es-CL')}
+                  ${Number(precioFinal).toLocaleString('es-CL')}
                 </span>
                 {tieneOferta && (
                   <span data-testid="badge-descuento" className={styles.badgeDescuento}>
@@ -114,7 +124,6 @@ function Producto() {
                 )}
               </div>
 
-              {/* Stock */}
               <div className={styles.stockWrapper}>
                 <span
                   data-testid="stock-disponible"
@@ -124,14 +133,12 @@ function Producto() {
                 </span>
               </div>
 
-              {/* Garantía */}
               {producto.garantia && (
                 <div className={styles.garantia}>
                   🛡️ Garantía: <strong>{producto.garantia}</strong>
                 </div>
               )}
 
-              {/* Selector cantidad */}
               <div className={styles.cantidadWrapper}>
                 <span className={styles.cantidadLabel}>Cantidad</span>
                 <div data-testid="selector-cantidad" className={styles.selectorCantidad}>
@@ -149,8 +156,12 @@ function Producto() {
                 </div>
               </div>
 
-              {/* Acciones */}
               <div className={styles.acciones}>
+                {producto.stock === 0 && (
+                  <div className={styles.alertaAgotado}>
+                    ⚠️ Este producto está agotado por el momento
+                  </div>
+                )}
                 {agregado && (
                   <div data-testid="confirmacion-agregado" className={styles.confirmacion}>
                     ✓ Producto agregado al carrito
@@ -162,7 +173,7 @@ function Producto() {
                   onClick={handleAgregarCarrito}
                   disabled={producto.stock === 0}
                 >
-                  {agregado ? '¡Agregado! ✓' : '🛒 Agregar al carrito'}
+                  {producto.stock === 0 ? '❌ Sin stock' : agregado ? '¡Agregado! ✓' : '🛒 Agregar al carrito'}
                 </button>
                 <button
                   data-testid="btn-volver"
@@ -175,7 +186,6 @@ function Producto() {
             </div>
           </div>
 
-          {/* Tabs de información */}
           <div className={styles.tabsWrapper}>
             <div className={styles.tabs}>
               {[
@@ -192,7 +202,6 @@ function Producto() {
                 </button>
               ))}
             </div>
-
             <div className={styles.tabContenido}>
               {tabActiva === 'descripcion' && (
                 <p data-testid="producto-descripcion" className={styles.tabTexto}>

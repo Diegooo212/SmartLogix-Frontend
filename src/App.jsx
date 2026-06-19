@@ -22,46 +22,52 @@ import AdminPromociones from './pages/Admin/Promociones'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import { DireccionesProvider } from './context/DireccionesContext'
 import { HistorialProvider } from './context/HistorialContext'
+import { ProductosProvider } from './context/ProductosContext'
+import { PedidosProvider } from './context/PedidosContext'
 
 function App() {
   return (
     <AuthProvider>
       <CarritoProvider>
-        <DireccionesProvider>
-          <HistorialProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="catalogo" element={<Catalogo />} />
-                  <Route path="producto/:id" element={<Producto />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="registro" element={<Register />} />
-                  <Route path="recuperar-password" element={<RecuperarPassword />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="perfil" element={<Perfil />} />
-                  </Route>
-                  <Route path="carrito" element={<Carrito />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="checkout" element={<Checkout />} />
-                  </Route>
-                </Route>
+        <ProductosProvider>
+          <PedidosProvider>
+            <DireccionesProvider>
+              <HistorialProvider>
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Layout />}>
+                      <Route index element={<Home />} />
+                      <Route path="catalogo" element={<Catalogo />} />
+                      <Route path="producto/:id" element={<Producto />} />
+                      <Route path="login" element={<Login />} />
+                      <Route path="registro" element={<Register />} />
+                      <Route path="recuperar-password" element={<RecuperarPassword />} />
+                      <Route element={<ProtectedRoute />}>
+                        <Route path="perfil" element={<Perfil />} />
+                      </Route>
+                      <Route path="carrito" element={<Carrito />} />
+                      <Route element={<ProtectedRoute />}>
+                        <Route path="checkout" element={<Checkout />} />
+                      </Route>
+                    </Route>
 
-                <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin/login" element={<AdminLogin />} />
 
-                <Route element={<ProtectedAdminRoute />}>
-                  <Route path="/admin" element={<AdminLayout />}>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="productos" element={<AdminProductos />} />
-                    <Route path="pedidos" element={<AdminPedidos />} />
-                    <Route path="inventario" element={<AdminInventario />} />
-                    <Route path="promociones" element={<AdminPromociones />} />
-                  </Route>
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </HistorialProvider>
-        </DireccionesProvider>
+                    <Route element={<ProtectedAdminRoute />}>
+                      <Route path="/admin" element={<AdminLayout />}>
+                        <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="productos" element={<AdminProductos />} />
+                        <Route path="pedidos" element={<AdminPedidos />} />
+                        <Route path="inventario" element={<AdminInventario />} />
+                        <Route path="promociones" element={<AdminPromociones />} />
+                      </Route>
+                    </Route>
+                  </Routes>
+                </BrowserRouter>
+              </HistorialProvider>
+            </DireccionesProvider>
+          </PedidosProvider>
+        </ProductosProvider>
       </CarritoProvider>
     </AuthProvider>
   )

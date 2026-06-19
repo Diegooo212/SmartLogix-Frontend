@@ -2,36 +2,32 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProductoCard from '../../components/common/ProductoCard'
 import styles from './Home.module.css'
+import { useProductos } from '../../context/ProductosContext'
 
 function Home() {
   const [destacados, setDestacados] = useState([])
-  const [productosGenerales, setProductosGenerales] = useState([]) // NUEVO ESTADO
+  const [productosGenerales, setProductosGenerales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [carruselIndex, setCarruselIndex] = useState(0)
   const [contadorProductos, setContadorProductos] = useState(0)
   const [contadorClientes, setContadorClientes] = useState(0)
   const navigate = useNavigate()
+  const { productos, error: errorCtx } = useProductos()
 
   useEffect(() => {
-    fetch('/api/productos')
-      .then(res => {
-        if (!res.ok) throw new Error('Error del servidor')
-        return res.json()
-      })
-      .then(data => {
-        const soloDestacados = data.filter(p => p.destacado).slice(0, 10)
-        setDestacados(soloDestacados)
-        // Guardamos los primeros 8 productos para la grilla de abajo
-        setProductosGenerales(data.slice(0, 8)) 
-        setLoading(false)
-        animarContadores()
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
-  }, [])
+    if (productos.length > 0) {
+      const soloDestacados = productos.filter(p => p.destacado).slice(0, 10)
+      setDestacados(soloDestacados)
+      setProductosGenerales(productos.slice(0, 8))
+      setLoading(false)
+      animarContadores()
+    }
+    if (errorCtx) {
+      setError(true)
+      setLoading(false)
+    }
+  }, [productos, errorCtx])
 
   const animarContadores = () => {
     let p = 0, c = 0
@@ -47,20 +43,7 @@ function Home() {
   const handleReintentar = () => {
     setError(false)
     setLoading(true)
-    fetch('/api/productos')
-      .then(res => {
-        if (!res.ok) throw new Error('Error del servidor')
-        return res.json()
-      })
-      .then(data => {
-        setDestacados(data.filter(p => p.destacado).slice(0, 10))
-        setProductosGenerales(data.slice(0, 8))
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
+    window.location.reload()
   }
 
   const handleAnterior = () => setCarruselIndex(i => (i > 0 ? i - 1 : destacados.length - 1))
@@ -110,16 +93,14 @@ function Home() {
           Productos <span className={styles.accent}>Destacados</span>
         </h2>
 
-        {/* Loader Skeleton */}
         {loading && (
           <div data-testid="skeleton-loader" className={styles.gridProductos}>
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} data-testid="skeleton-item" className={styles.skeletonCard} />
             ))}
           </div>
         )}
 
-        {/* Mensaje de Error */}
         {error && (
           <div data-testid="error-productos" className={styles.error}>
             <p>Error al cargar las ofertas</p>
@@ -129,7 +110,6 @@ function Home() {
           </div>
         )}
 
-        {/* Carrusel 3D */}
         {!loading && !error && (
           <div data-testid="carrusel-destacados" className={styles.carruselContenedor}>
             <button data-testid="btn-anterior" className={`${styles.carruselBtn} ${styles.btnLeft}`} onClick={handleAnterior}>
@@ -138,28 +118,28 @@ function Home() {
 
             <div className={styles.carruselPista}>
               {destacados.map((producto, index) => {
-                let posicion = styles.oculto;
-                
+                let posicion = styles.oculto
+
                 if (index === carruselIndex) {
-                  posicion = styles.centro;
+                  posicion = styles.centro
                 } else if (index === (carruselIndex - 1 + destacados.length) % destacados.length) {
-                  posicion = styles.izquierda;
+                  posicion = styles.izquierda
                 } else if (index === (carruselIndex + 1) % destacados.length) {
-                  posicion = styles.derecha;
+                  posicion = styles.derecha
                 }
 
                 return (
-                  <div 
-                    key={`destacado-${producto.id}`} 
+                  <div
+                    key={`destacado-${producto.id}`}
                     className={`${styles.carruselItem} ${posicion}`}
                     onClick={() => {
-                      if (posicion === styles.izquierda) handleAnterior();
-                      if (posicion === styles.derecha) handleSiguiente();
+                      if (posicion === styles.izquierda) handleAnterior()
+                      if (posicion === styles.derecha) handleSiguiente()
                     }}
                   >
                     <ProductoCard producto={producto} />
                   </div>
-                );
+                )
               })}
             </div>
 
@@ -170,7 +150,7 @@ function Home() {
         )}
       </section>
 
-      {/* NUEVA SECCIÓN: Catálogo General (Grilla) */}
+      {/* Sección 2: Nuevos Ingresos */}
       <section className={styles.seccion}>
         <h2 className={styles.seccionTitulo}>
           Nuevos <span className={styles.accent}>Ingresos</span>
@@ -185,7 +165,7 @@ function Home() {
         )}
 
         {!loading && !error && (
-          <div className={styles.gridProductos}>
+          <div data-testid="lista-productos" className={styles.gridProductos}>
             {productosGenerales.map(producto => (
               <ProductoCard key={`grilla-${producto.id}`} producto={producto} />
             ))}

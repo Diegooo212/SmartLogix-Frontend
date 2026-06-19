@@ -1,5 +1,5 @@
+import { screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../test/mocks/server'
 import { renderWithProviders } from '../../test/utils/renderWithProviders'
@@ -17,7 +17,11 @@ describe('HU-01 · Ver página principal', () => {
   it('CA2: el carrusel muestra solo productos con estado destacado', async () => {
     renderWithProviders(<Home />)
     await waitFor(() => {
-      const cards = screen.getAllByTestId('producto-card')
+      // 1. Capturamos el contenedor específico del carrusel
+      const carrusel = screen.getByTestId('carrusel-destacados')
+      // 2. Buscamos las tarjetas SOLO dentro de ese contenedor
+      const cards = within(carrusel).getAllByTestId('producto-card')
+      
       expect(cards.length).toBeGreaterThanOrEqual(1)
       expect(cards.length).toBeLessThanOrEqual(10)
     })
@@ -26,8 +30,11 @@ describe('HU-01 · Ver página principal', () => {
   it('CA2b: el carrusel no muestra productos sin estado destacado', async () => {
     renderWithProviders(<Home />)
     await waitFor(() => {
-      const cards = screen.getAllByTestId('producto-card')
-      // Solo hay 5 destacados en el mock, los no destacados no deben aparecer
+      // Aplicamos la misma lógica aquí
+      const carrusel = screen.getByTestId('carrusel-destacados')
+      const cards = within(carrusel).getAllByTestId('producto-card')
+      
+      // Ahora sí contará solo los 5 del mock de destacados
       expect(cards.length).toBe(5)
     })
   })

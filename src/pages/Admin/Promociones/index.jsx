@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useProductos } from '../../../context/ProductosContext'
 import styles from './Promociones.module.css'
 
 function AdminPromociones() {
-  const [productos, setProductos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const { productos, loading, error, toggleDestacado, actualizarOferta } = useProductos()
   const [filtro, setFiltro] = useState('todos')
   const [guardando, setGuardando] = useState(null)
   const [errorGuardar, setErrorGuardar] = useState(false)
@@ -12,13 +11,6 @@ function AdminPromociones() {
   const [productoEditando, setProductoEditando] = useState(null)
   const [precioOferta, setPrecioOferta] = useState('')
   const [errorPrecio, setErrorPrecio] = useState('')
-
-  useEffect(() => {
-    fetch('/api/productos')
-      .then(res => { if (!res.ok) throw new Error('Error'); return res.json() })
-      .then(data => { setProductos(data); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
-  }, [])
 
   const handleToggleDestacado = async (id, valorActual) => {
     setGuardando(id)
@@ -30,7 +22,7 @@ function AdminPromociones() {
         body: JSON.stringify({ destacado: !valorActual }),
       })
       if (!res.ok) throw new Error('Error')
-      setProductos(productos.map(p => p.id === id ? { ...p, destacado: !valorActual } : p))
+      toggleDestacado(id, !valorActual)
     } catch {
       setErrorGuardar(true)
     } finally {
@@ -57,7 +49,7 @@ function AdminPromociones() {
         body: JSON.stringify({ precioOferta: precio }),
       })
       if (!res.ok) throw new Error('Error')
-      setProductos(productos.map(p => p.id === productoEditando.id ? { ...p, precioOferta: precio, enOferta: true } : p))
+      actualizarOferta(productoEditando.id, precio)
       setModalAbierto(false)
     } catch {
       setErrorGuardar(true)
@@ -78,7 +70,14 @@ function AdminPromociones() {
         <h1 className={styles.titulo}>Promociones y Destacados</h1>
         <div data-testid="filtros-promociones" className={styles.filtros}>
           {['todos', 'destacados', 'oferta'].map(f => (
-            <button key={f} data-testid={`filtro-${f}`} className={`${styles.btnFiltro} ${filtro === f ? styles.btnFiltroActivo : ''}`} onClick={() => setFiltro(f)}>{f}</button>
+            <button
+              key={f}
+              data-testid={`filtro-${f}`}
+              className={`${styles.btnFiltro} ${filtro === f ? styles.btnFiltroActivo : ''}`}
+              onClick={() => setFiltro(f)}
+            >
+              {f}
+            </button>
           ))}
         </div>
       </div>
@@ -97,13 +96,31 @@ function AdminPromociones() {
               {productosFiltrados.map(producto => (
                 <tr key={producto.id} data-testid="promocion-fila">
                   <td data-testid="fila-nombre">{producto.nombre}</td>
-                  <td><span className={styles.precioBase}>${producto.precio.toLocaleString('es-CL')}</span></td>
-                  <td><span data-testid={`precio-oferta-${producto.id}`} className={styles.precioOferta}>{producto.precioOferta ? `$${producto.precioOferta.toLocaleString('es-CL')}` : '-'}</span></td>
+                  <td><span className={styles.precioBase}>${Number(producto.precio).toLocaleString('es-CL')}</span></td>
                   <td>
-                    <input type="checkbox" data-testid={`toggle-destacado-${producto.id}`} className={styles.toggle} checked={producto.destacado || false} disabled={guardando === producto.id} onChange={() => handleToggleDestacado(producto.id, producto.destacado)} />
+                    <span data-testid={`precio-oferta-${producto.id}`} className={styles.precioOferta}>
+                      {producto.precioOferta ? `$${Number(producto.precioOferta).toLocaleString('es-CL')}` : '-'}
+                    </span>
                   </td>
                   <td>
-                    <button data-testid={`btn-editar-oferta-${producto.id}`} className={styles.btnEditarOferta} onClick={() => handleAbrirOferta(producto)} disabled={guardando === producto.id}>Editar oferta</button>
+                    <input
+                      type="checkbox"
+                      data-testid={`toggle-destacado-${producto.id}`}
+                      className={styles.toggle}
+                      checked={producto.destacado || false}
+                      disabled={guardando === producto.id}
+                      onChange={() => handleToggleDestacado(producto.id, producto.destacado)}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      data-testid={`btn-editar-oferta-${producto.id}`}
+                      className={styles.btnEditarOferta}
+                      onClick={() => handleAbrirOferta(producto)}
+                      disabled={guardando === producto.id}
+                    >
+                      Editar oferta
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -116,15 +133,28 @@ function AdminPromociones() {
         <div className={styles.modalOverlay}>
           <div data-testid="modal-oferta" className={styles.modal}>
             <h2 className={styles.modalTitulo}>Editar oferta — {productoEditando.nombre}</h2>
-            <p data-testid="precio-base-modal" className={styles.precioBaseModal}>Precio base: ${productoEditando.precio.toLocaleString('es-CL')}</p>
+            <p data-testid="precio-base-modal" className={styles.precioBaseModal}>
+              Precio base: ${Number(productoEditando.precio).toLocaleString('es-CL')}
+            </p>
             <div className={styles.campo}>
               <label className={styles.label}>Precio oferta</label>
-              <input data-testid="input-precio-oferta" className={styles.input} type="number" placeholder="Precio oferta" value={precioOferta} onChange={e => { setPrecioOferta(e.target.value); setErrorPrecio('') }} />
+              <input
+                data-testid="input-precio-oferta"
+                className={styles.input}
+                type="number"
+                placeholder="Precio oferta"
+                value={precioOferta}
+                onChange={e => { setPrecioOferta(e.target.value); setErrorPrecio('') }}
+              />
               {errorPrecio && <span data-testid="error-precio-oferta" className={styles.errorMsg}>{errorPrecio}</span>}
             </div>
             <div className={styles.modalAcciones}>
-              <button data-testid="btn-guardar-oferta" className={styles.btnGuardar} onClick={handleGuardarOferta}>Guardar oferta</button>
-              <button data-testid="btn-cancelar-modal" className={styles.btnCancelar} onClick={() => setModalAbierto(false)}>Cancelar</button>
+              <button data-testid="btn-guardar-oferta" className={styles.btnGuardar} onClick={handleGuardarOferta}>
+                Guardar oferta
+              </button>
+              <button data-testid="btn-cancelar-modal" className={styles.btnCancelar} onClick={() => setModalAbierto(false)}>
+                Cancelar
+              </button>
             </div>
           </div>
         </div>

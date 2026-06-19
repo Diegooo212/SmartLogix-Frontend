@@ -1,99 +1,80 @@
 import { describe, it, expect } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
-import { http, HttpResponse } from 'msw'
-import { server } from '../../../test/mocks/server'
+import { useEffect } from 'react'
 import { renderWithProviders } from '../../../test/utils/renderWithProviders'
+import { usePedidos } from '../../../context/PedidosContext'
 import AdminPedidos from './index'
+
+const pedidosMock = [
+  { cliente: 'Diego Tatin', correoCliente: 'diego@test.cl', total: 924980, items: [] },
+  { cliente: 'María López', correoCliente: 'maria@test.cl', total: 349990, items: [] },
+  { cliente: 'Carlos Pérez', correoCliente: 'carlos@test.cl', total: 89990, items: [] },
+]
+
+function AdminPedidosConDatos({ pedidos = pedidosMock }) {
+  const { agregarPedido } = usePedidos()
+  useEffect(() => {
+    pedidos.forEach(p => agregarPedido(p))
+  }, [])
+  return <AdminPedidos />
+}
 
 describe('HU-ADMIN-02 · Gestión de Pedidos', () => {
 
   it('CA1: muestra tabla con pedidos al cargar', async () => {
-    renderWithProviders(<AdminPedidos />)
+    renderWithProviders(<AdminPedidosConDatos />)
     await waitFor(() => {
-      expect(screen.getByTestId('tabla-pedidos')).toBeInTheDocument()
       const filas = screen.getAllByTestId('pedido-fila')
-      expect(filas.length).toBeGreaterThanOrEqual(3)
+      expect(filas.length).toBe(3)
     })
   })
 
   it('CA2: muestra filtro por estado', () => {
-    renderWithProviders(<AdminPedidos />)
+    renderWithProviders(<AdminPedidosConDatos />)
     expect(screen.getByTestId('filtro-estado')).toBeInTheDocument()
   })
 
   it('CA2b: filtra pedidos por estado', async () => {
-    renderWithProviders(<AdminPedidos />)
+    renderWithProviders(<AdminPedidosConDatos />)
     await waitFor(() => screen.getAllByTestId('pedido-fila'))
-    fireEvent.change(screen.getByTestId('filtro-estado'), {
-      target: { value: 'Pendiente' }
-    })
+    fireEvent.change(screen.getByTestId('filtro-estado'), { target: { value: 'Pendiente' } })
     await waitFor(() => {
       const filas = screen.getAllByTestId('pedido-fila')
-      expect(filas.length).toBeGreaterThanOrEqual(1)
+      expect(filas.length).toBe(3)
     })
   })
 
   it('CA3: buscador filtra por cliente', async () => {
-    renderWithProviders(<AdminPedidos />)
+    renderWithProviders(<AdminPedidosConDatos />)
     await waitFor(() => screen.getAllByTestId('pedido-fila'))
-    fireEvent.change(screen.getByTestId('buscador-pedidos'), {
-      target: { value: 'Diego' }
-    })
+    fireEvent.change(screen.getByTestId('buscador-pedidos'), { target: { value: 'Diego' } })
     await waitFor(() => {
       const filas = screen.getAllByTestId('pedido-fila')
-      expect(filas.length).toBeGreaterThanOrEqual(1)
+      expect(filas.length).toBe(1)
     })
   })
 
   it('CA4: muestra selector de estado por pedido', async () => {
-    renderWithProviders(<AdminPedidos />)
+    renderWithProviders(<AdminPedidosConDatos />)
     await waitFor(() => {
-      expect(screen.getByTestId('select-estado-1')).toBeInTheDocument()
+      const selects = screen.getAllByTestId(/select-estado-/)
+      expect(selects.length).toBe(3)
     })
   })
 
   it('CA4b: cambia el estado de un pedido correctamente', async () => {
-    renderWithProviders(<AdminPedidos />)
-    await waitFor(() => screen.getByTestId('select-estado-1'))
-    fireEvent.change(screen.getByTestId('select-estado-1'), {
-      target: { value: 'En Preparación' }
-    })
+    renderWithProviders(<AdminPedidosConDatos />)
+    await waitFor(() => screen.getAllByTestId('pedido-fila'))
+    const select = screen.getAllByTestId(/select-estado-/)[0]
+    fireEvent.change(select, { target: { value: 'En Preparación' } })
     await waitFor(() => {
       expect(screen.getByTestId('exitoso')).toBeInTheDocument()
     })
   })
 
-  it('CA5 (Loading): muestra skeleton loader mientras carga', () => {
-    renderWithProviders(<AdminPedidos />)
-    expect(screen.getByTestId('skeleton-loader')).toBeInTheDocument()
-  })
-
-  it('CA6 (Error): muestra error si la API falla al cargar', async () => {
-    server.use(
-      http.get('/api/pedidos', () => {
-        return new HttpResponse(null, { status: 500 })
-      })
-    )
-    renderWithProviders(<AdminPedidos />)
-    await waitFor(() => {
-      expect(screen.getByTestId('error-pedidos')).toBeInTheDocument()
-    })
-  })
-
-  it('CA7 (Error): muestra error si falla al actualizar estado', async () => {
-    server.use(
-      http.put('/api/pedidos/:id', () => {
-        return new HttpResponse(null, { status: 500 })
-      })
-    )
-    renderWithProviders(<AdminPedidos />)
-    await waitFor(() => screen.getByTestId('select-estado-1'))
-    fireEvent.change(screen.getByTestId('select-estado-1'), {
-      target: { value: 'Entregado' }
-    })
-    await waitFor(() => {
-      expect(screen.getByTestId('error-actualizar')).toBeInTheDocument()
-    })
+  it('CA5: muestra mensaje cuando no hay pedidos', () => {
+    renderWithProviders(<AdminPedidosConDatos pedidos={[]} />)
+    expect(screen.getByText(/No hay pedidos aún/)).toBeInTheDocument()
   })
 
 })

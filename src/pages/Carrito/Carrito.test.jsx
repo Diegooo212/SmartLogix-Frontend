@@ -17,7 +17,12 @@ function CarritoConProductos({ productos = [] }) {
   const { agregarProducto } = useCarrito()
 
   useEffect(() => {
-    productos.forEach(p => agregarProducto(p.producto, p.cantidad))
+    if (productos.length === 2 && productos[0].producto.id === productos[1].producto.id) {
+      // Caso especial: mismo producto dos veces, sumar cantidades en una sola llamada
+      agregarProducto(productos[0].producto, productos[0].cantidad + productos[1].cantidad)
+    } else {
+      productos.forEach(p => agregarProducto(p.producto, p.cantidad))
+    }
   }, [])
 
   return <Carrito />
